@@ -1,0 +1,82 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Http\Resources\TeacherResource;
+use App\Http\Requests\StoreTeacherRequest;
+use App\Http\Requests\UpdateTeacherRequest;
+use App\Models\Teacher;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
+
+class TeacherController extends Controller
+{
+    
+    public function index()
+    {
+        $teachers = Teacher::with('user')->get();
+        return TeacherResource::collection($teachers);
+    }
+
+    public function store(StoreTeacherRequest $request)
+{
+      
+    $teacher = DB::transaction(function () use ($request) {
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'is_active' => true,
+        ]);
+
+        $user->assignRole('Guru');
+
+        return Teacher::create([
+            'user_id' => $user->id,
+            'nip' => $request->nip,
+            'gender' => $request->gender,
+            'phone' => $request->phone,
+            'birth_date' => $request->birth_date,
+        ]);
+    });
+
+    return new TeacherResource(
+        $teacher->load('user')
+    );
+}
+
+    public function show(Teacher $teacher)
+    {
+        $teacher->load('user');
+        return new TeacherResource($teacher);
+    }
+
+    public function update(UpdateTeacherRequest $request, Teacher $teacher)
+    {
+        DB::transaction(function () use ($request, $teacher) {
+            $teacher->user->update([
+                'name' => $request->name,
+                'email' => $request->email,                
+            ]);
+
+            $teacher->update([
+                'nip' => $request->nip,
+                'gender' => $request->gender,
+                'phone' => $request->phone,
+                'birth_date' => $request->birth_date,
+            ]);
+
+            if ($request->filled('password')) {
+                $teacher->user->update([
+                    'password' => Hash::make($request->password),
+                ]);
+            }
+        });
+        return new TeacherResource($teacher->load('user'));
+    }
+}
+
