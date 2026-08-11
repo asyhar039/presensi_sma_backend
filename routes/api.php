@@ -12,10 +12,16 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanc
 Route::get('/me', [AuthController::class, 'me'])
     ->middleware('auth:sanctum');
 
+Route::middleware(['auth:sanctum', 'role:Super Admin'])->group(function () {
 Route::get('/teachers', [TeacherController::class, 'index']);
 Route::post('/teachers', [TeacherController::class, 'store']);
 Route::get('/teachers/{teacher}', [TeacherController::class, 'show']);
 Route::put('/teachers/{teacher}', [TeacherController::class, 'update']);
+
+Route::patch('/teachers/{teacher}/deactivate', [TeacherController::class, 'deactivate']);
+Route::patch('/teachers/{teacher}/activate', [TeacherController::class, 'activate']);
+
+});
 
 Route::get('/user', function (Request $request) {
     return $request->user();

@@ -78,5 +78,27 @@ class TeacherController extends Controller
         });
         return new TeacherResource($teacher->load('user'));
     }
+
+        public function deactivate(Teacher $teacher)
+    {
+        $teacher->user->update([
+            'is_active' => false,
+        ]);
+
+        return new TeacherResource(
+            $teacher->load('user')
+        );
+    }
+
+    public function activate(Teacher $teacher)
+    {
+        $teacher->user->update([
+            'is_active' => true,
+        ]);
+
+        return new TeacherResource(
+            $teacher->load('user')
+        );
+    }
 }
 
