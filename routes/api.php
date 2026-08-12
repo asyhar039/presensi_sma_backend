@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\TeacherController;
 use App\Http\Controllers\Api\StudentController;
 use App\Http\Controllers\Api\SchoolClassController;
+use App\Http\Controllers\Api\MapelController;
 
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -30,6 +31,12 @@ Route::post('/students', [StudentController::class, 'store']);
 Route::get('/students/{student}', [StudentController::class, 'show']);
 Route::put('/students/{student}', [StudentController::class, 'update']);
 Route::delete('/students/{student}', [StudentController::class, 'destroy']);
+
+Route::get('/mapels', [MapelController::class, 'index']);
+Route::post('/mapels', [MapelController::class, 'store']);
+Route::get('/mapels/{mapel}', [MapelController::class, 'show']);
+Route::put('/mapels/{mapel}', [MapelController::class, 'update']);
+Route::delete('/mapels/{mapel}', [MapelController::class, 'destroy']);
 
 Route::patch('/teachers/{teacher}/deactivate', [TeacherController::class, 'deactivate']);
 Route::patch('/teachers/{teacher}/activate', [TeacherController::class, 'activate']);
