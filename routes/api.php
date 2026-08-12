@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\TeacherController;
+use App\Http\Controllers\Api\StudentController;
 use App\Http\Controllers\Api\SchoolClassController;
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -23,6 +24,12 @@ Route::get('/classes', [SchoolClassController::class, 'index']);
 Route::post('/classes', [SchoolClassController::class, 'store']);
 Route::get('/classes/{schoolClass}', [SchoolClassController::class, 'show']);
 Route::put('/classes/{schoolClass}', [SchoolClassController::class, 'update']);
+
+Route::get('/students', [StudentController::class, 'index']);
+Route::post('/students', [StudentController::class, 'store']);
+Route::get('/students/{student}', [StudentController::class, 'show']);
+Route::put('/students/{student}', [StudentController::class, 'update']);
+Route::delete('/students/{student}', [StudentController::class, 'destroy']);
 
 Route::patch('/teachers/{teacher}/deactivate', [TeacherController::class, 'deactivate']);
 Route::patch('/teachers/{teacher}/activate', [TeacherController::class, 'activate']);
