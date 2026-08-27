@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\TeacherController;
 use App\Http\Controllers\Api\StudentController;
@@ -9,6 +10,7 @@ use App\Http\Controllers\Api\SchoolClassController;
 use App\Http\Controllers\Api\MapelController;
 use App\Http\Controllers\Api\RoomController;
 use App\Http\Controllers\Api\ScheduleController;
+use App\Http\Controllers\Api\AttendanceController;
 
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -53,6 +55,10 @@ Route::get('/schedules', [ScheduleController::class, 'index']);
 Route::post('/schedules', [ScheduleController::class, 'store']);
 Route::get('/schedules/{schedule}', [ScheduleController::class, 'show']);
 Route::put('/schedules/{schedule}', [ScheduleController::class, 'update']);
+
+Route::post('/attendances', [AttendanceController::class, 'store']);
+
+Route::get('/dashboard', [DashboardController::class, 'index']);
 
 Route::patch('/teachers/{teacher}/deactivate', [TeacherController::class, 'deactivate']);
 Route::patch('/teachers/{teacher}/activate', [TeacherController::class, 'activate']);
