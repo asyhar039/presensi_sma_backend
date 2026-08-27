@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\MapelController;
 use App\Http\Controllers\Api\RoomController;
 use App\Http\Controllers\Api\ScheduleController;
 use App\Http\Controllers\Api\AttendanceController;
+use Illuminate\Support\Facades\DB;
 
 Route::post('/login', [AuthController::class, 'login']);
 

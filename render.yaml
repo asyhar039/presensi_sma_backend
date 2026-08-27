@@ -1,0 +1,117 @@
+services:
+  # ==========================================================
+  # STAGING API
+  # ==========================================================
+  - type: web
+    name: laravel-api-staging
+
+    runtime: docker
+
+    # Staging follows the staging branch.
+    branch: staging
+
+    # Render automatically deploys this service when the branch
+    # changes, subject to the configured CI-check policy.
+    autoDeploy: true
+
+    healthCheckPath: /health
+
+    # Give Laravel/PHP-FPM enough time to drain requests.
+    maxShutdownDelaySeconds: 60
+
+    dockerfilePath: ./Dockerfile
+
+    envVars:
+      - key: APP_ENV
+        value: staging
+
+      - key: APP_DEBUG
+        value: "false"
+
+      - key: LOG_CHANNEL
+        value: stderr
+
+      - key: DB_CONNECTION
+        value: mysql
+
+      # Store actual credentials in Render Dashboard.
+      - key: DB_HOST
+        sync: false
+
+      - key: DB_PORT
+        value: "3306"
+
+      - key: DB_DATABASE
+        sync: false
+
+      - key: DB_USERNAME
+        sync: false
+
+      - key: DB_PASSWORD
+        sync: false
+
+      - key: APP_KEY
+        sync: false
+
+    # Runs after image build and before the new instance
+    # receives production traffic.
+    preDeployCommand: >
+      php artisan migrate --force &&
+      php artisan config:cache &&
+      php artisan route:cache &&
+      php artisan view:cache
+
+  # ==========================================================
+  # PRODUCTION API
+  # ==========================================================
+  - type: web
+    name: laravel-api-production
+
+    runtime: docker
+
+    branch: production
+
+    autoDeploy: true
+
+    healthCheckPath: /health
+
+    maxShutdownDelaySeconds: 60
+
+    dockerfilePath: ./Dockerfile
+
+    envVars:
+      - key: APP_ENV
+        value: production
+
+      - key: APP_DEBUG
+        value: "false"
+
+      - key: LOG_CHANNEL
+        value: stderr
+
+      - key: DB_CONNECTION
+        value: mysql
+
+      - key: DB_HOST
+        sync: false
+
+      - key: DB_PORT
+        value: "3306"
+
+      - key: DB_DATABASE
+        sync: false
+
+      - key: DB_USERNAME
+        sync: false
+
+      - key: DB_PASSWORD
+        sync: false
+
+      - key: APP_KEY
+        sync: false
+
+    preDeployCommand: >
+      php artisan migrate --force &&
+      php artisan config:cache &&
+      php artisan route:cache &&
+      php artisan view:cache
