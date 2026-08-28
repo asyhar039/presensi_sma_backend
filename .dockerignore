@@ -1,0 +1,29 @@
+# Version control
+.git
+.gitignore
+
+# Environment & Configuration
+.env
+.env.*
+!.env.example
+
+# Local Dependencies & Caches
+/vendor
+/node_modules
+.phpunit.result.cache
+
+# Laravel Storage & Logs
+/storage/logs/*
+!/storage/logs/.gitkeep
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+
+# IDE & Editor Files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

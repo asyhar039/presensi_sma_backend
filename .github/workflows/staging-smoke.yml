@@ -1,0 +1,71 @@
+name: Staging Smoke Tests
+
+on:
+  push:
+    branches:
+      - staging
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: staging-smoke
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    name: Staging Smoke Tests
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Wait for Render deployment
+        env:
+          STAGING_URL: ${{ vars.STAGING_URL }}
+        run: |
+          echo "Waiting for staging deployment..."
+
+          for i in {1..60}; do
+            STATUS=$(curl \
+              --silent \
+              --output /dev/null \
+              --write-out "%{http_code}" \
+              "${STAGING_URL}/health" || true)
+
+            echo "Attempt ${i}: HTTP ${STATUS}"
+
+            if [ "${STATUS}" = "200" ]; then
+              echo "Staging is healthy."
+              exit 0
+            fi
+
+            sleep 10
+          done
+
+          echo "Staging health check failed."
+          exit 1
+
+      - name: Health endpoint
+        env:
+          STAGING_URL: ${{ vars.STAGING_URL }}
+        run: |
+          curl \
+            --fail \
+            --silent \
+            --show-error \
+            "${STAGING_URL}/health"
+
+      # Example public API smoke test.
+      # Replace /api/v1/status with your actual endpoint.
+      - name: API smoke test
+        env:
+          STAGING_URL: ${{ vars.STAGING_URL }}
+        run: |
+          STATUS=$(curl \
+            --silent \
+            --output /dev/null \
+            --write-out "%{http_code}" \
+            "${STAGING_URL}/api/v1/status")
+
+          test "${STATUS}" = "200"

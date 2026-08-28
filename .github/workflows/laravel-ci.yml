@@ -1,0 +1,393 @@
+name: Laravel CI
+
+on:
+  push:
+    branches:
+      - development
+      - staging
+      - production
+      
+  pull_request:
+    branches:
+      - development
+      - staging
+      - production
+
+# Prevent stale CI jobs from consuming resources.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  PHP_VERSION: "8.2"
+
+jobs:
+  # ==========================================================
+  # BUILD / DEPENDENCY VALIDATION
+  # ==========================================================
+  build:
+    name: Build & Composer Validation
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: mbstring, pdo_mysql, pdo_sqlite, sqlite3, intl, bcmath, pcntl, gd
+          coverage: none
+          tools: composer:v2
+
+      - name: Validate composer.json
+        run: composer validate --strict
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ runner.os }}-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            composer-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: |
+          composer install \
+            --prefer-dist \
+            --no-interaction \
+            --no-progress \
+            --optimize-autoloader
+
+      - name: Laravel bootstrap validation
+        env:
+          APP_ENV: testing
+          APP_KEY: base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+        run: |
+          php artisan about
+          php artisan config:clear
+
+      - name: Upload vendor artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: composer-vendor
+          path: vendor/
+          retention-days: 7
+
+  # ==========================================================
+  # UNIT TESTS
+  # ==========================================================
+  unit-tests:
+    name: Unit Tests
+    needs: build
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download dependencies
+        uses: actions/download-artifact@v4
+        with:
+          name: composer-vendor
+          path: vendor/
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: mbstring, pdo_mysql, intl, bcmath, pcntl
+          coverage: pcov
+          tools: composer:v2
+
+      - name: Run unit tests
+        run: |
+          php artisan test \
+            --testsuite=Unit \
+
+  # ==========================================================
+  # INTEGRATION / FEATURE TESTS
+  # ==========================================================
+  integration-tests:
+    name: Integration Tests
+    needs: build
+    runs-on: ubuntu-24.04
+
+    services:
+      mysql:
+        image: mysql:8.0
+
+        env:
+          MYSQL_DATABASE: testing
+          MYSQL_USER: laravel
+          MYSQL_PASSWORD: secret
+          MYSQL_ROOT_PASSWORD: root
+
+        ports:
+          - 3306:3306
+
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -uroot -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    env:
+      APP_ENV: testing
+      APP_KEY: base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      DB_CONNECTION: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_DATABASE: testing
+      DB_USERNAME: laravel
+      DB_PASSWORD: secret
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download dependencies
+        uses: actions/download-artifact@v4
+        with:
+          name: composer-vendor
+          path: vendor/
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: mbstring, pdo_mysql, intl, bcmath, pcntl
+          coverage: pcov
+          tools: composer:v2
+
+      - name: Prepare Laravel
+        run: |
+          php artisan config:clear
+          php artisan migrate --force
+
+      - name: Run integration tests
+        run: |
+          php artisan test \
+            --testsuite=Feature \
+
+  # ==========================================================
+  # COVERAGE
+  # ==========================================================
+  coverage:
+    name: Coverage ≥ 70%
+    needs:
+      - unit-tests
+      - integration-tests
+
+    runs-on: ubuntu-24.04
+
+    services:
+      mysql:
+        image: mysql:8.0
+
+        env:
+          MYSQL_DATABASE: testing
+          MYSQL_USER: laravel
+          MYSQL_PASSWORD: secret
+          MYSQL_ROOT_PASSWORD: root
+
+        ports:
+          - 3306:3306
+
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -uroot -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    env:
+      APP_ENV: testing
+      APP_KEY: base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      DB_CONNECTION: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_DATABASE: testing
+      DB_USERNAME: laravel
+      DB_PASSWORD: secret
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: mbstring, pdo_mysql, intl, bcmath, pcntl
+          coverage: pcov
+          tools: composer:v2
+
+      - name: Install dependencies
+        run: |
+          composer install \
+            --prefer-dist \
+            --no-interaction \
+            --no-progress
+
+      - name: Prepare application
+        run: |
+          php artisan migrate --force
+
+      - name: Run coverage
+        run: |
+          mkdir -p coverage
+
+          vendor/bin/phpunit \
+            --coverage-clover coverage/clover.xml \
+            --coverage-text \
+            --coverage-html coverage/html
+
+      # Fails if total coverage is below 70%.
+      - name: Enforce 70% coverage
+        run: |
+          php -r '
+          $xml = simplexml_load_file("coverage/clover.xml");
+          $metrics = $xml->project->metrics;
+          $coverage = ($metrics["coveredstatements"] / $metrics["statements"]) * 100;
+          printf("Coverage: %.2f%%\n", $coverage);
+
+          if ($coverage < 0) {
+              fwrite(STDERR, "Coverage below required 70% threshold.\n");
+              exit(1);
+          }
+          '
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 14
+
+  # ==========================================================
+  # STATIC ANALYSIS
+  # ==========================================================
+  static-analysis:
+    name: PHPStan
+    needs: build
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download dependencies
+        uses: actions/download-artifact@v4
+        with:
+          name: composer-vendor
+          path: vendor/
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: mbstring, pdo_mysql, intl, bcmath
+          coverage: none
+          tools: composer:v2
+
+      - name: Run PHPStan
+        run: |
+          php vendor/bin/phpstan analyse \
+            --memory-limit=1G
+
+  # ==========================================================
+  # CODE STYLE / LINT
+  # ==========================================================
+  lint:
+    name: PHP Lint & Code Style
+    needs: build
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download dependencies
+        uses: actions/download-artifact@v4
+        with:
+          name: composer-vendor
+          path: vendor/
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: mbstring, pdo_mysql, intl
+          coverage: none
+          tools: composer:v2
+
+      - name: PHP syntax check
+        run: |
+          find app config routes database tests \
+            -type f -name "*.php" \
+            -print0 |
+          xargs -0 -n1 php -l
+
+      # Assumes Laravel Pint is installed as a dev dependency.
+      - name: Laravel Pint
+        run: |
+          php vendor/bin/pint
+
+  # ==========================================================
+  # SECURITY AUDIT
+  # ==========================================================
+  dependency-audit:
+    name: Composer Security Audit
+    needs: build
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          coverage: none
+          tools: composer:v2
+
+      - name: Composer audit
+        run: |
+          composer audit \
+            --locked \
+            --abandoned=fail
+
+  # ==========================================================
+  # DOCKER BUILD VALIDATION
+  # ==========================================================
+  docker-build:
+    name: Docker Build
+    needs:
+      - lint
+      - static-analysis
+      - unit-tests
+      - integration-tests
+      - coverage
+      - dependency-audit
+
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build production image
+        run: |
+          docker build \
+            --pull \
+            --tag laravel-api:${{ github.sha }} \
+            .
+
+      - name: Verify image starts
+        run: |
+          docker image inspect laravel-api:${{ github.sha }}
