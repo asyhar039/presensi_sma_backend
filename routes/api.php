@@ -11,6 +11,8 @@ use App\Http\Controllers\Api\MapelController;
 use App\Http\Controllers\Api\RoomController;
 use App\Http\Controllers\Api\ScheduleController;
 use App\Http\Controllers\Api\AttendanceController;
+use App\Http\Controllers\Api\WaliKelasController;
+use App\Http\Controllers\Api\PermissionRequestController;
 use Illuminate\Support\Facades\DB;
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -70,6 +72,22 @@ Route::patch('/rooms/{room}/activate', [RoomController::class, 'activate']);
 Route::patch('/schedules/{schedule}/deactivate', [ScheduleController::class, 'deactivate']);
 Route::patch('/schedules/{schedule}/activate', [ScheduleController::class, 'activate']);
 
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+   
+    //siswa
+    Route::get('/permission-requests', [PermissionRequestController::class,'index']);
+    Route::post('/permission-requests', [PermissionRequestController::class,'store']);
+    //wali kelas
+    Route::get('/wali-kelas/permission-requests', [PermissionRequestController::class,'indexForWaliKelas']);
+    Route::get('/wali-kelas/permission-requests/{id}', [PermissionRequestController::class,'show']);
+    Route::patch('/wali-kelas/permission-requests/{id}/approve', [PermissionRequestController::class,'approve']);
+    Route::patch('/wali-kelas/permission-requests/{id}/reject', [PermissionRequestController::class,'reject']);
+    Route::get('/wali-kelas/class', [WaliKelasController::class,'class']);
+    Route::get('/wali-kelas/students', [WaliKelasController::class,'students']);
+    Route::get('/wali-kelas/attendances', [WaliKelasController::class,'attendances']);
+    Route::get('/wali-kelas/attendance-summary', [WaliKelasController::class,'attendanceSummary']);
 });
 
 Route::get('/user', function (Request $request) {

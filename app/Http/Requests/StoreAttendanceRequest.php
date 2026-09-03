@@ -40,7 +40,7 @@ class StoreAttendanceRequest extends FormRequest
                 $this->attendance_date,
                 $this->check_in
             ),],
-            'status' => ['required','in:hadir,terlambat,izin,sakit,alpa',],
+        
         ];
     }
 }

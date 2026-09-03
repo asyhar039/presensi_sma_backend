@@ -31,20 +31,20 @@ class Teacher extends Model
     {
         return $this->belongsTo(User::class);
     }
-    public function kelas(): HasOne
+    
+    public function schoolClass(): HasOne
     {
-    return $this->hasOne(SchoolClass::class, 'wali_kelas_id');
+        return $this->hasOne(
+            SchoolClass::class,
+            'wali_kelas_id'
+        );
     }
+
     public function mapels()
     {
         return $this->belongsToMany(
             Mapel::class,
             'teacher_mapel'
         );
-    }
-
-    public function walikelas(): HasOne
-    {
-        return $this->hasOne(SchoolClass::class, 'wali_kelas_id');
     }
 }
