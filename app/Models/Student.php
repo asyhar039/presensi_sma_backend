@@ -8,6 +8,36 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\Attendance;
 use App\Models\PermissionRequest;
 
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property string $nis
+ * @property string $gender
+ * @property string $phone
+ * @property \Illuminate\Support\Carbon $birth_date
+ * @property int $class_id
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, Attendance> $attendances
+ * @property-read int|null $attendances_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, PermissionRequest> $permissionRequests
+ * @property-read int|null $permission_requests_count
+ * @property-read \App\Models\SchoolClass $schoolClass
+ * @property-read \App\Models\User $user
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Student newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Student newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Student query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Student whereBirthDate($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Student whereClassId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Student whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Student whereGender($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Student whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Student whereNis($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Student wherePhone($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Student whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Student whereUserId($value)
+ * @mixin \Eloquent
+ */
 class Student extends Model
 {
     protected $fillable = [

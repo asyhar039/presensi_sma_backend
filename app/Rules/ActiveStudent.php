@@ -23,7 +23,10 @@ class ActiveStudent implements ValidationRule
             return;
         }
 
-        if(!$student->user || !$student->user->is_active) {
+        // if(!$student->user || !$student->user->is_active) {
+        //     $fail('Siswa yang dipilih tidak aktif');
+        // }
+        if(!$student->user->is_active) {
             $fail('Siswa yang dipilih tidak aktif');
         }
     }

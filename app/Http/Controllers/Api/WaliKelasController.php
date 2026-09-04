@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
+use App\Models\Student;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -12,7 +13,7 @@ class WaliKelasController extends Controller
 {
     public function class(): JsonResponse
     {
-        $user = auth()->user();
+        $user = $this->authUser();
         $teacher = $user->teacher;
         $schoolClass = $teacher?->schoolClass;
 
@@ -29,7 +30,7 @@ class WaliKelasController extends Controller
                 'name' => $schoolClass->name,
                 'wali_kelas' => [
                     'id' => $teacher->id,
-                    'name' => $teacher->user?->name,
+                    'name' => $teacher->user->name,
                 ],
             ],
         ]);
@@ -37,7 +38,7 @@ class WaliKelasController extends Controller
 
     public function students(): JsonResponse
     {
-        $user = auth()->user();
+        $user = $this->authUser();
 
         $teacher = $user->teacher;
 
@@ -49,6 +50,7 @@ class WaliKelasController extends Controller
             ], 403);
         }
 
+        /** @var \Illuminate\Database\Eloquent\Collection<int, \App\Models\Student> $students */
         $students = $schoolClass->students()
             ->with('user')
             ->get();
@@ -60,11 +62,11 @@ class WaliKelasController extends Controller
                     'id' => $schoolClass->id,
                     'name' => $schoolClass->name,
                 ],
-                'students' => $students->map(function ($student) {
+                'students' => $students->map(function (Student $student) {
                     return [
                         'id' => $student->id,
                         'nis' => $student->nis,
-                        'name' => $student->user?->name,
+                        'name' => $student->user->name,
                     ];
                 }),
             ],
@@ -73,7 +75,7 @@ class WaliKelasController extends Controller
 
     public function attendances(): JsonResponse
     {
-       $user = auth()->user();
+       $user = $this->authUser();
        $teacher = $user->teacher;
        $schoolClass = $teacher?->schoolClass;
        
@@ -83,6 +85,7 @@ class WaliKelasController extends Controller
         ], 403);
        }
 
+       /** @var \Illuminate\Database\Eloquent\Collection<int, \App\Models\Student> $students */
        $students = $schoolClass->students()
         ->with([
             'user',
@@ -98,14 +101,14 @@ class WaliKelasController extends Controller
                 'name' => $schoolClass->name,
             ],
 
-            'students' => $students->map(function ($student) {
+            'students' => $students->map(function (Student $student) {
                 return [
                     'id' => $student->id,
                     'nis' => $student->nis,
-                    'name' => $student->user?->name,
+                    'name' => $student->user->name,
 
                     'attendances' => $student->attendances
-                        ->map(function ($attendance) {
+                        ->map(function (Attendance $attendance) {
                             return [
                                 'id' => $attendance->id,
                                 'attendance_date' => $attendance->attendance_date,
@@ -113,8 +116,8 @@ class WaliKelasController extends Controller
                                 'status' => $attendance->status,
 
                                 'mapel' => [
-                                    'id' => $attendance->schedule?->mapel?->id,
-                                    'name' => $attendance->schedule?->mapel?->name,
+                                    'id' => $attendance->schedule->mapel->id,
+                                    'name' => $attendance->schedule->mapel->name,
                                 ],
                             ];
                         })
@@ -127,7 +130,7 @@ class WaliKelasController extends Controller
 
     public function attendanceSummary(): JsonResponse
     {
-        $user = auth()->user();
+        $user = $this->authUser();
         $teacher = $user->teacher;
         $schoolClass = $teacher?->schoolClass;
 
@@ -137,6 +140,7 @@ class WaliKelasController extends Controller
             ], 403);
         }
 
+        /** @var \Illuminate\Database\Eloquent\Collection<int, \App\Models\Student> $students */
         $students = $schoolClass->students()
             ->with('user')
             ->get();
@@ -154,7 +158,7 @@ class WaliKelasController extends Controller
                     'name' => $schoolClass->name,
                 ],
 
-                'students' => $students->map(function ($student) use ($attendances) {
+                'students' => $students->map(function (Student $student) use ($attendances) {
 
                     $studentAttendances = $attendances
                         ->where('student_id', $student->id);
@@ -188,7 +192,7 @@ class WaliKelasController extends Controller
                     return [
                         'id' => $student->id,
                         'nis' => $student->nis,
-                        'name' => $student->user?->name,
+                        'name' => $student->user->name,
 
                         'summary' => [
                             'hadir' => $hadir,

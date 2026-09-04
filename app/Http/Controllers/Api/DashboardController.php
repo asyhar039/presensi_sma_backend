@@ -44,7 +44,7 @@ class DashboardController extends Controller
             ->get();
 
         $expectedAttendances = $todaySchedules->sum(
-            fn ($schedule) => $schedule->schoolClass->students->count()
+            fn (Schedule $schedule) => $schedule->schoolClass->students->count()
         );
 
         $todayScheduleIds = $todaySchedules->pluck('id');
@@ -73,24 +73,24 @@ class DashboardController extends Controller
             ->latest('check_in')
             ->take(10)
             ->get()
-            ->map(function ($attendance) {
+            ->map(function (Attendance $attendance) {
                 return [
                     'id' => $attendance->id,
 
                     'student' => [
-                        'id' => $attendance->student?->id,
-                        'nis' => $attendance->student?->nis,
-                        'name' => $attendance->student?->user?->name,
+                        'id' => $attendance->student->id,
+                        'nis' => $attendance->student->nis,
+                        'name' => $attendance->student->user->name,
                     ],
 
                     'class' => [
-                        'id' => $attendance->schedule?->schoolClass?->id,
-                        'name' => $attendance->schedule?->schoolClass?->name,
+                        'id' => $attendance->schedule->schoolClass->id,
+                        'name' => $attendance->schedule->schoolClass->name,
                     ],
 
                     'mapel' => [
-                        'id' => $attendance->schedule?->mapel?->id,
-                        'name' => $attendance->schedule?->mapel?->name,
+                        'id' => $attendance->schedule->mapel->id,
+                        'name' => $attendance->schedule->mapel->name,
                     ],
 
                     'check_in' => $attendance->check_in,

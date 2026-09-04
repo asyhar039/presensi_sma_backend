@@ -23,7 +23,10 @@ class ActiveTeacher implements ValidationRule
             $fail('Guru yang dipilih tidak ditemukan');
             return;
         }
-        if (!$teacher->user || !$teacher->user->is_active) {
+        // if (!$teacher->user || !$teacher->user->is_active) {
+        //     $fail('Guru yang dipilih tidak aktif');
+        // }
+        if (!$teacher->user->is_active) {
             $fail('Guru yang dipilih tidak aktif');
         }
     }
