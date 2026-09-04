@@ -1,6 +1,7 @@
-name: Staging Smoke Tests
+name: Staging Smoke Test
 
 on:
+
   push:
     branches:
       - staging
@@ -15,57 +16,73 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  smoke:
-    name: Staging Smoke Tests
+
+  smoke-test:
+
+    name: Staging Smoke Test
+
     runs-on: ubuntu-24.04
 
     steps:
-      - name: Wait for Render deployment
+
+      - name: Wait for Railway deployment
         env:
           STAGING_URL: ${{ vars.STAGING_URL }}
         run: |
-          echo "Waiting for staging deployment..."
+
+          if [ -z "$STAGING_URL" ]; then
+            echo "STAGING_URL is not configured."
+            exit 1
+          fi
+
+          echo "Waiting for staging..."
 
           for i in {1..60}; do
-            STATUS=$(curl \
-              --silent \
-              --output /dev/null \
-              --write-out "%{http_code}" \
-              "${STAGING_URL}/health" || true)
+
+            STATUS=$(
+              curl \
+                --silent \
+                --output /dev/null \
+                --write-out "%{http_code}" \
+                --max-time 10 \
+                "${STAGING_URL}/health" \
+                || true
+            )
 
             echo "Attempt ${i}: HTTP ${STATUS}"
 
-            if [ "${STATUS}" = "200" ]; then
+            if [ "$STATUS" = "200" ]; then
               echo "Staging is healthy."
               exit 0
             fi
 
             sleep 10
+
           done
 
-          echo "Staging health check failed."
+          echo "Staging did not become healthy."
           exit 1
 
-      - name: Health endpoint
+
+      - name: Health check
         env:
           STAGING_URL: ${{ vars.STAGING_URL }}
         run: |
+
           curl \
             --fail \
             --silent \
             --show-error \
             "${STAGING_URL}/health"
 
-      # Example public API smoke test.
-      # Replace /api/v1/status with your actual endpoint.
+
       - name: API smoke test
         env:
           STAGING_URL: ${{ vars.STAGING_URL }}
         run: |
-          STATUS=$(curl \
-            --silent \
-            --output /dev/null \
-            --write-out "%{http_code}" \
-            "${STAGING_URL}/api/v1/status")
 
-          test "${STATUS}" = "200"
+          curl \
+            --fail \
+            --silent \
+            --show-error \
+            "${STAGING_URL}/api/health"
