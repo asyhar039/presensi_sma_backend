@@ -13,4 +13,4 @@ parameters:
   ignoreErrors:
     - '#Access to an undefined property App\\Http\\Resources\\[a-zA-Z0-9\\]+::\$#'
     - '#Call to an undefined method App\\Http\\Resources\\[a-zA-Z0-9\\]+::#'
-    - '#Access to an undefined property Illuminate\\Database\\Eloquent\\Model::\$is_active#'
+

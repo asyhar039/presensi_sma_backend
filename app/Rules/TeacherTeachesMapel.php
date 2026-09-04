@@ -25,7 +25,7 @@ class TeacherTeachesMapel implements ValidationRule
         $hasMapel = $teacher->mapels()->where('mapels.id', $value)->exists();
 
         if (!$hasMapel) {
-            $fail('Guru tersebut tidak mengampu mapel yang kamu pilih');
+            $fail('Guru tersebut tidak mengajar mapel yang kamu pilih');
         }
     }
 }
