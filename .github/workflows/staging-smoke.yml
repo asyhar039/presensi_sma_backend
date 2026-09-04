@@ -5,7 +5,10 @@ on:
   push:
     branches:
       - staging
-
+  pull_request:
+    branches:
+      - development
+      - staging
   workflow_dispatch:
 
 permissions:
