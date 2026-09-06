@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePermissionRequest;
 use App\Http\Requests\RejectPermissionRequest;
 use App\Models\PermissionRequest;
+use App\Models\Attendance;
+use App\Models\Schedule;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 
 class PermissionRequestController extends Controller
@@ -172,6 +175,50 @@ class PermissionRequestController extends Controller
             'approved_at' => now(),
             'rejection_reason' => null,
         ]);
+
+        $startDate = Carbon::parse($permission->start_date);
+        $endDate = Carbon::parse($permission->end_date);
+
+        $dayMap = [
+            'Monday' => 'Senin',
+            'Tuesday' => 'Selasa',
+            'Wednesday' => 'Rabu',
+            'Thursday' => 'Kamis',
+            'Friday' => 'Jumat',
+            'Saturday' => 'Sabtu',
+            'Sunday' => 'Minggu',
+        ];
+
+        $student = $permission->student;
+        $classId = $student->class_id;
+        
+        while ($startDate->lte($endDate)) {
+            $day = $dayMap[$startDate->englishDayOfWeek];
+
+            $schedules = Schedule::where('class_id', $classId)
+            ->where('day', $day)
+            ->where('is_active', true)
+            ->get();
+        foreach ($schedules as $schedule) {
+            $attendanceExists = Attendance::where('schedule_id', $schedule->id)
+            ->where('student_id', $student->id)
+            ->whereDate('attendance_date', $startDate)
+            ->exists();
+
+                if ($attendanceExists) {
+                    continue;
+                }
+                Attendance::create([
+                'schedule_id' => $schedule->id,
+                'student_id' => $student->id,
+                'attendance_date' => $startDate->toDateString(),
+                'check_in' => null,
+                'status' => $permission->type,
+            ]);
+            }       
+
+            $startDate->addDay();
+        }
 
         return response()->json([
             'message' => 'Pengajuan izin berhasil disetujui',
