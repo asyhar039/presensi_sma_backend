@@ -20,7 +20,7 @@ trait ApiResponseTrait
      * @param  mixed|null  $meta  Optional pagination or auxiliary metadata.
      */
     protected function response(
-        mixed $data = [],
+        mixed $data = null,
         string $message = 'Success',
         int $code = Response::HTTP_OK,
         mixed $meta = null
@@ -46,7 +46,7 @@ trait ApiResponseTrait
      * @param  mixed|null  $meta  Optional pagination or auxiliary metadata.
      */
     public function successResponse(
-        mixed $data = [],
+        mixed $data = null,
         string $message = 'Success',
         int $code = Response::HTTP_OK,
         mixed $meta = null
