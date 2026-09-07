@@ -4,8 +4,8 @@ namespace App\Exceptions;
 
 use App\Traits\ApiResponseTrait;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -20,7 +20,7 @@ class ApiExceptionHandler
     /**
      * Render the given exception as a JSON response when appropriate.
      */
-    public function renderApiException(Throwable $e, Request $request): ?JsonResponse
+    public function renderApiException(Throwable $e): ?JsonResponse
     {
         if ($e instanceof ValidationException) {
             return $this->errorResponse(
@@ -43,6 +43,10 @@ class ApiExceptionHandler
 
         if ($e instanceof MethodNotAllowedHttpException) {
             return $this->errorResponse(message: 'Method not allowed.', code: Response::HTTP_METHOD_NOT_ALLOWED);
+        }
+
+        if ($e instanceof AuthenticationException) {
+            return $this->errorResponse(message: 'Unauthenticated.', code: Response::HTTP_UNAUTHORIZED);
         }
 
         if ($e instanceof HttpException) {

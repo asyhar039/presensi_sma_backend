@@ -37,9 +37,6 @@ class AuthService
 
     /**
      * Logout the user by revoking the current access token.
-     *
-     * @param  User  $user
-     * @return void
      */
     public function logout(User $user): void
     {
@@ -48,9 +45,6 @@ class AuthService
 
     /**
      * Get the authenticated user with their roles, permissions, and profile.
-     *
-     * @param  User  $user
-     * @return User
      */
     public function getAuthenticatedUser(User $user): User
     {

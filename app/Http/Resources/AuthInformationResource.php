@@ -10,31 +10,31 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
  * Wraps the authenticated user plus their role detail profile.
+ *
+ * @mixin \stdClass
+ *
+ * @property array{user: User, profile: Student|Teacher|null, role: string|null} $resource
  */
 class AuthInformationResource extends JsonResource
 {
     /**
-     * @param  array{user: mixed, profile: mixed, role: string|null}  $resource
      * @return array<string, mixed>
      */
     public function toArray(Request $request): array
     {
-        /** @var array{user: User, profile: Student|Teacher|null, role: string|null} $data */
-        $data = $this->resource;
-
         $profile = match (true) {
-            $data['profile'] instanceof Student => StudentResource::make($data['profile']),
-            $data['profile'] instanceof Teacher => TeacherResource::make($data['profile']),
+            $this->resource['profile'] instanceof Student => StudentResource::make($this->resource['profile']),
+            $this->resource['profile'] instanceof Teacher => TeacherResource::make($this->resource['profile']),
             default => null,
         };
 
         return [
-            'user' => UserResource::make($data['user']),
-            'role' => $data['role'],
+            'user' => UserResource::make($this->resource['user']),
+            'role' => $this->resource['role'],
             'profile' => $profile,
             'profile_type' => match (true) {
-                $data['profile'] instanceof Student => 'student',
-                $data['profile'] instanceof Teacher => 'teacher',
+                $this->resource['profile'] instanceof Student => 'student',
+                $this->resource['profile'] instanceof Teacher => 'teacher',
                 default => null,
             },
         ];
