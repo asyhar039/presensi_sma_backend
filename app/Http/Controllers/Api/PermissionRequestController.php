@@ -200,14 +200,21 @@ class PermissionRequestController extends Controller
             ->where('is_active', true)
             ->get();
         foreach ($schedules as $schedule) {
-            $attendanceExists = Attendance::where('schedule_id', $schedule->id)
+            $attendance = Attendance::where('schedule_id', $schedule->id)
             ->where('student_id', $student->id)
             ->whereDate('attendance_date', $startDate)
-            ->exists();
+            ->first();
 
-                if ($attendanceExists) {
-                    continue;
-                }
+        if ($attendance) {
+            if ($attendance->status === 'alpa') {
+                $attendance->update([
+                    'status' => $permission->type,
+                    'check_in' => null,
+                ]);
+            }
+
+            continue;
+        }
                 Attendance::create([
                 'schedule_id' => $schedule->id,
                 'student_id' => $student->id,

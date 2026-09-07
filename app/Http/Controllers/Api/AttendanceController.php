@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreAttendanceRequest;
 use App\Http\Resources\AttendanceResource;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Models\Attendance;
 use App\Models\Schedule;

@@ -5,7 +5,6 @@ namespace App\Rules;
 use Closure;
 use App\Models\Schedule;
 use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Translation\PotentiallyTranslatedString;
 use Carbon\Carbon;
 
 class AttendanceWithinSchedule implements ValidationRule
@@ -32,6 +31,7 @@ class AttendanceWithinSchedule implements ValidationRule
             'thursday' => 'Kamis',
             'friday' => 'Jumat',
             'saturday' => 'Sabtu',
+            'sunday' => 'Minggu',
         ];
 
         $attendanceDay = $dayMap [

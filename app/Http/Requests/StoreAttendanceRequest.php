@@ -25,6 +25,15 @@ class StoreAttendanceRequest extends FormRequest
      *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
+    protected function prepareForValidation(): void
+    {
+        $now = now();
+
+        $this->merge([
+            'attendance_date' => $now->toDateString(),
+            'check_in' => $now->format('H:i'),
+        ]);
+    }
     public function rules(): array
     {
         return [
