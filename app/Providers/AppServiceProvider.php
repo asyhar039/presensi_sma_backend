@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\User;
 use Dedoc\Scramble\Scramble;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -21,7 +22,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Gate::define('viewApiDocs', static fn (): bool => ! app()->isProduction());
+        Gate::define('viewApiDocs', static fn (?User $user): bool => ! app()->isProduction());
 
         if (app()->isProduction()) {
             Scramble::configure()->expose(false);
