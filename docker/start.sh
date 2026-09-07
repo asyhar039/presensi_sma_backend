@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
+set -e
 
-set -euo pipefail
+# Ambil PORT dari Railway, fallback ke 8080 jika di lokal
+APP_PORT="${PORT:-8080}"
 
-# Render provides PORT dynamically.
-PORT="${PORT:-10000}"
+# Substitusi port Nginx secara dinamis
+sed -i "s/__PORT__/${APP_PORT}/g" /etc/nginx/sites-available/default
 
-# Replace the placeholder listener.
-sed -i "s/listen 10000;/listen ${PORT};/" \
-    /etc/nginx/sites-available/default
+# Perbarui izin folder storage & cache
+chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Make sure Laravel directories remain writable.
-chown -R www-data:www-data \
-    /var/www/html/storage \
-    /var/www/html/bootstrap/cache
+# Cache Laravel
+php artisan config:cache
+php artisan route:cache
 
-# Start Supervisor.
-exec /usr/bin/supervisord -n \
-    -c /etc/supervisor/conf.d/supervisord.conf
+# Jalankan Supervisor (Path disesuaikan dengan Dockerfile)
+exec /usr/bin/supervisord -n -c /etc/supervisord.conf
