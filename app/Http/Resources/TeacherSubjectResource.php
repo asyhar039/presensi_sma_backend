@@ -2,14 +2,14 @@
 
 namespace App\Http\Resources;
 
-use App\Models\Student;
+use App\Models\TeacherSubject;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * @mixin Student
+ * @mixin TeacherSubject
  */
-class StudentResource extends JsonResource
+class TeacherSubjectResource extends JsonResource
 {
     /**
      * @return array<string, mixed>
@@ -18,10 +18,9 @@ class StudentResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'user' => UserResource::make($this->whenLoaded('user')),
-            'gender' => $this->gender?->keyLabel(),
-            'address' => $this->address,
-            'status' => $this->status?->keyLabel(),
+            'teacher' => TeacherResource::make($this->whenLoaded('teacher')),
+            'subject' => SubjectResource::make($this->whenLoaded('subject')),
+            'academic_year' => AcademicYearResource::make($this->whenLoaded('academicYear')),
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
         ];

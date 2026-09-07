@@ -18,9 +18,12 @@ class TeacherResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'user' => UserResource::make($this->whenLoaded('user')),
             'gender' => $this->gender?->keyLabel(),
             'address' => $this->address,
             'employment_status' => $this->employment_status?->keyLabel(),
+            'created_at' => $this->created_at?->toISOString(),
+            'updated_at' => $this->updated_at?->toISOString(),
         ];
     }
 }
