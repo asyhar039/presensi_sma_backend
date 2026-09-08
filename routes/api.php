@@ -59,8 +59,6 @@ Route::post('/schedules', [ScheduleController::class, 'store']);
 Route::get('/schedules/{schedule}', [ScheduleController::class, 'show']);
 Route::put('/schedules/{schedule}', [ScheduleController::class, 'update']);
 
-Route::get('/dashboard', [DashboardController::class, 'index']);
-
 Route::patch('/teachers/{teacher}/deactivate', [TeacherController::class, 'deactivate']);
 Route::patch('/teachers/{teacher}/activate', [TeacherController::class, 'activate']);
 Route::patch('/classes/{schoolClass}/deactivate', [SchoolClassController::class, 'deactivate']);
@@ -86,6 +84,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/wali-kelas/students', [WaliKelasController::class,'students']);
     Route::get('/wali-kelas/attendances', [WaliKelasController::class,'attendances']);
     Route::get('/wali-kelas/attendance-summary', [WaliKelasController::class,'attendanceSummary']);
+
+    Route::get('/dashboard', [DashboardController::class, 'index']);
 
     Route::post('/attendances', [AttendanceController::class, 'store']);
 });
