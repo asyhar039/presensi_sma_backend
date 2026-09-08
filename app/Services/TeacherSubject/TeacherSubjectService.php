@@ -12,7 +12,7 @@ class TeacherSubjectService
     /**
      * @return LengthAwarePaginator<int, TeacherSubject>
      */
-    public function paginate(int $perPage = 15, ?int $teacherId = null, ?int $subjectId = null, ?int $academicYearId = null): LengthAwarePaginator
+    public function paginate(int $perPage = 10, ?int $teacherId = null, ?int $subjectId = null, ?int $academicYearId = null): LengthAwarePaginator
     {
         return TeacherSubject::query()
             ->with(['teacher.user', 'subject', 'academicYear'])

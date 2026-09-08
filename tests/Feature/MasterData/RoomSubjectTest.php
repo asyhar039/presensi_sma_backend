@@ -50,7 +50,7 @@ test('admin can crud rooms', function (): void {
 
     $this->withToken($token)->getJson('/rooms')
         ->assertOk()
-        ->assertJsonStructure(['data', 'meta' => ['current_page', 'per_page', 'total', 'last_page']]);
+        ->assertJsonStructure(['data', 'meta' => ['page', 'per_page', 'total', 'total_pages']]);
 
     $this->withToken($token)->getJson("/rooms/{$created['id']}")
         ->assertOk()->assertJsonPath('data.name', 'A101');
@@ -83,7 +83,7 @@ test('admin can crud subjects', function (): void {
 
     $this->withToken($token)->getJson('/subjects')
         ->assertOk()
-        ->assertJsonStructure(['data', 'meta' => ['current_page', 'per_page', 'total', 'last_page']]);
+        ->assertJsonStructure(['data', 'meta' => ['page', 'per_page', 'total', 'total_pages']]);
 
     $this->withToken($token)->getJson("/subjects/{$created['id']}")
         ->assertOk()->assertJsonPath('data.name', 'Mathematics');

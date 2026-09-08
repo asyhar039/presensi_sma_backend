@@ -46,7 +46,7 @@ test('admin can assign teacher into subject using active year by default', funct
     ])->assertUnprocessable();
 
     $this->withToken($token)->getJson('/teacher-subjects')->assertOk()
-        ->assertJsonStructure(['data', 'meta' => ['current_page', 'per_page', 'total', 'last_page']]);
+        ->assertJsonStructure(['data', 'meta' => ['page', 'per_page', 'total', 'total_pages']]);
 
     $this->withToken($token)->deleteJson("/teacher-subjects/{$created['id']}")->assertOk();
     $this->assertDatabaseMissing('teacher_subjects', ['id' => $created['id']]);

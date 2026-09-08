@@ -11,6 +11,7 @@ use App\Services\AcademicYear\AcademicYearService;
 use App\Traits\ApiResponseTrait;
 use Dedoc\Scramble\Attributes\Endpoint;
 use Dedoc\Scramble\Attributes\Group;
+use Dedoc\Scramble\Attributes\QueryParameter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -25,16 +26,21 @@ class AcademicYearController extends Controller
     /**
      * List academic years with pagination.
      */
-    #[Endpoint(title: 'List academic years', description: 'Returns paginated academic years ordered by newest first.')]
+    #[Endpoint(title: 'List academic years', description: 'Returns paginated academic years. Filter by semester or year; sort by allowed columns.')]
+    #[QueryParameter('page', description: 'Current page number.', type: 'int', default: 1)]
+    #[QueryParameter('per_page', description: 'Items per page (max 50).', type: 'int', default: 10)]
+    #[QueryParameter('semester', description: 'Filter by semester: odd, even.', type: 'string')]
+    #[QueryParameter('year', description: 'Filter by year matching the start or end date.', type: 'int')]
+    #[QueryParameter('sortBy', description: 'Sort column: id, start_date, end_date, semester, is_active, created_at.', type: 'string')]
+    #[QueryParameter('order', description: 'Sort direction: asc or desc.', type: 'string')]
     public function index(Request $request): JsonResponse
     {
-        $paginator = $this->academicYearService->paginate((int) $request->integer('per_page', 15));
+        $paginator = $this->academicYearService->paginate($request);
 
-        return $this->successResponse(
-            data: AcademicYearResource::collection($paginator->items()),
-            message: 'Academic years retrieved successfully.',
-            code: Response::HTTP_OK,
-            meta: $this->paginationMeta($paginator)
+        return $this->paginatedResponse(
+            $paginator,
+            AcademicYearResource::collection($paginator->items()),
+            'Academic years retrieved successfully.'
         );
     }
 

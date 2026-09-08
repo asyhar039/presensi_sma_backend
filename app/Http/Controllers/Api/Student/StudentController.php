@@ -27,21 +27,22 @@ class StudentController extends Controller
     /**
      * List students with pagination.
      */
-    #[Endpoint(title: 'List students', description: 'Returns paginated students with their user accounts. Supports search by name, email or identity number.')]
-    #[QueryParameter('per_page', description: 'Items per page.', type: 'int', default: 15)]
-    #[QueryParameter('search', description: 'Search by student name, email or identity number.', type: 'string')]
+    #[Endpoint(title: 'List students', description: 'Returns paginated students searchable by name or identity number; filter by status and gender; sort by allowed columns.')]
+    #[QueryParameter('page', description: 'Current page number.', type: 'int', default: 1)]
+    #[QueryParameter('per_page', description: 'Items per page (max 50).', type: 'int', default: 10)]
+    #[QueryParameter('search', description: 'Search by student name or identity number.', type: 'string')]
+    #[QueryParameter('status', description: 'Filter by status: active, inactive, graduated, dropped_out.', type: 'string')]
+    #[QueryParameter('gender', description: 'Filter by gender: male, female.', type: 'string')]
+    #[QueryParameter('sortBy', description: 'Sort column: id, name, created_at.', type: 'string')]
+    #[QueryParameter('order', description: 'Sort direction: asc or desc.', type: 'string')]
     public function index(Request $request): JsonResponse
     {
-        $paginator = $this->studentService->paginate(
-            (int) $request->integer('per_page', 15),
-            $request->string('search')->toString() ?: null
-        );
+        $paginator = $this->studentService->paginate($request);
 
-        return $this->successResponse(
-            data: StudentResource::collection($paginator->items()),
-            message: 'Students retrieved successfully.',
-            code: Response::HTTP_OK,
-            meta: $this->paginationMeta($paginator)
+        return $this->paginatedResponse(
+            $paginator,
+            StudentResource::collection($paginator->items()),
+            'Students retrieved successfully.'
         );
     }
 

@@ -26,14 +26,15 @@ class TeacherSubjectController extends Controller
      * List teacher-subject assignments.
      */
     #[Endpoint(title: 'List teacher-subject assignments', description: 'Returns paginated teacher assignments to subjects. academic_year_id is optional; pass it to scope another year.')]
-    #[QueryParameter('per_page', description: 'Items per page.', type: 'int', default: 15)]
+    #[QueryParameter('page', description: 'Current page number.', type: 'int', default: 1)]
+    #[QueryParameter('per_page', description: 'Items per page.', type: 'int', default: 10)]
     #[QueryParameter('teacher_id', description: 'Filter by teacher.', type: 'int')]
     #[QueryParameter('subject_id', description: 'Filter by subject.', type: 'int')]
     #[QueryParameter('academic_year_id', description: 'Filter by academic year.', type: 'int')]
     public function index(Request $request): JsonResponse
     {
         $paginator = $this->teacherSubjectService->paginate(
-            (int) $request->integer('per_page', 15),
+            (int) $request->integer('per_page', 10),
             $request->integer('teacher_id') ?: null,
             $request->integer('subject_id') ?: null,
             $request->integer('academic_year_id') ?: null,

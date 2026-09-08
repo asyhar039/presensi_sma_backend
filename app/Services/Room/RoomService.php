@@ -3,16 +3,27 @@
 namespace App\Services\Room;
 
 use App\Models\Room;
+use App\Services\DataTable\DataTableBuilder;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Http\Request;
 
 class RoomService
 {
     /**
+     * List rooms searchable by name.
+     *
      * @return LengthAwarePaginator<int, Room>
      */
-    public function paginate(int $perPage = 15): LengthAwarePaginator
+    public function paginate(Request $request): LengthAwarePaginator
     {
-        return Room::query()->latest()->paginate($perPage);
+        return DataTableBuilder::make(Room::query(), $request)
+            ->searchable(['name'])
+            ->sortable([
+                'id' => 'id',
+                'name' => 'name',
+                'created_at' => 'created_at',
+            ])
+            ->paginate();
     }
 
     /**

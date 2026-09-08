@@ -31,12 +31,12 @@ class ClassroomController extends Controller
      * List classrooms with pagination.
      */
     #[Endpoint(title: 'List classrooms', description: 'Returns paginated classrooms with academic year, homeroom teacher and student counts. Filter by academic_year_id when needed.')]
-    #[QueryParameter('per_page', description: 'Items per page.', type: 'int', default: 15)]
+    #[QueryParameter('per_page', description: 'Items per page.', type: 'int', default: 10)]
     #[QueryParameter('academic_year_id', description: 'Filter classrooms by academic year.', type: 'int')]
     public function index(Request $request): JsonResponse
     {
         $paginator = $this->classroomService->paginate(
-            (int) $request->integer('per_page', 15),
+            (int) $request->integer('per_page', 10),
             $request->integer('academic_year_id') ?: null
         );
 
@@ -134,10 +134,11 @@ class ClassroomController extends Controller
      * List students assigned to a classroom.
      */
     #[Endpoint(title: 'List classroom students', description: 'Returns paginated students assigned to the classroom.')]
-    #[QueryParameter('per_page', description: 'Items per page.', type: 'int', default: 15)]
+    #[QueryParameter('page', description: 'Current page number.', type: 'int', default: 1)]
+    #[QueryParameter('per_page', description: 'Items per page.', type: 'int', default: 10)]
     public function students(Request $request, Classroom $classroom): JsonResponse
     {
-        $paginator = $this->classroomService->paginateStudents($classroom, (int) $request->integer('per_page', 15));
+        $paginator = $this->classroomService->paginateStudents($classroom, (int) $request->integer('per_page', 10));
 
         return $this->successResponse(
             data: StudentResource::collection($paginator->items()),

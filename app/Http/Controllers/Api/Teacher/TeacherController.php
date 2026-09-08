@@ -27,21 +27,22 @@ class TeacherController extends Controller
     /**
      * List teachers with pagination.
      */
-    #[Endpoint(title: 'List teachers', description: 'Returns paginated teachers with their user accounts. Supports search by name, email or identity number.')]
-    #[QueryParameter('per_page', description: 'Items per page.', type: 'int', default: 15)]
-    #[QueryParameter('search', description: 'Search by teacher name, email or identity number.', type: 'string')]
+    #[Endpoint(title: 'List teachers', description: 'Returns paginated teachers searchable by name or identity number; filter by employment status and gender; sort by allowed columns.')]
+    #[QueryParameter('page', description: 'Current page number.', type: 'int', default: 1)]
+    #[QueryParameter('per_page', description: 'Items per page (max 50).', type: 'int', default: 10)]
+    #[QueryParameter('search', description: 'Search by teacher name or identity number.', type: 'string')]
+    #[QueryParameter('employment_status', description: 'Filter by employment status: pns, pppk, honorer.', type: 'string')]
+    #[QueryParameter('gender', description: 'Filter by gender: male, female.', type: 'string')]
+    #[QueryParameter('sortBy', description: 'Sort column: id, name, created_at.', type: 'string')]
+    #[QueryParameter('order', description: 'Sort direction: asc or desc.', type: 'string')]
     public function index(Request $request): JsonResponse
     {
-        $paginator = $this->teacherService->paginate(
-            (int) $request->integer('per_page', 15),
-            $request->string('search')->toString() ?: null
-        );
+        $paginator = $this->teacherService->paginate($request);
 
-        return $this->successResponse(
-            data: TeacherResource::collection($paginator->items()),
-            message: 'Teachers retrieved successfully.',
-            code: Response::HTTP_OK,
-            meta: $this->paginationMeta($paginator)
+        return $this->paginatedResponse(
+            $paginator,
+            TeacherResource::collection($paginator->items()),
+            'Teachers retrieved successfully.'
         );
     }
 

@@ -3,16 +3,27 @@
 namespace App\Services\Subject;
 
 use App\Models\Subject;
+use App\Services\DataTable\DataTableBuilder;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Http\Request;
 
 class SubjectService
 {
     /**
+     * List subjects searchable by name.
+     *
      * @return LengthAwarePaginator<int, Subject>
      */
-    public function paginate(int $perPage = 15): LengthAwarePaginator
+    public function paginate(Request $request): LengthAwarePaginator
     {
-        return Subject::query()->latest()->paginate($perPage);
+        return DataTableBuilder::make(Subject::query(), $request)
+            ->searchable(['name'])
+            ->sortable([
+                'id' => 'id',
+                'name' => 'name',
+                'created_at' => 'created_at',
+            ])
+            ->paginate();
     }
 
     /**

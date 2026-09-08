@@ -2,18 +2,43 @@
 
 namespace App\Services\AcademicYear;
 
+use App\Enums\Enums\SemesterEnums;
 use App\Models\AcademicYear;
+use App\Services\DataTable\DataTableBuilder;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class AcademicYearService
 {
     /**
+     * List academic years. Search is disabled; filter by semester or year.
+     *
      * @return LengthAwarePaginator<int, AcademicYear>
      */
-    public function paginate(int $perPage = 15): LengthAwarePaginator
+    public function paginate(Request $request): LengthAwarePaginator
     {
-        return AcademicYear::query()->latest()->paginate($perPage);
+        $semesters = implode(',', array_column(SemesterEnums::cases(), 'value'));
+
+        return DataTableBuilder::make(AcademicYear::query(), $request)
+            ->sortable([
+                'id' => 'id',
+                'start_date' => 'start_date',
+                'end_date' => 'end_date',
+                'semester' => 'semester',
+                'is_active' => 'is_active',
+                'created_at' => 'created_at',
+            ])
+            ->addFilter('semester', ['nullable', 'string', 'in:'.$semesters], function (Builder $query, string $value): void {
+                $query->where('semester', $value);
+            })
+            ->addFilter('year', ['nullable', 'integer', 'min:1900', 'max:2100'], function (Builder $query, int $value): void {
+                $query->where(function (Builder $query) use ($value): void {
+                    $query->whereYear('start_date', $value)->orWhereYear('end_date', $value);
+                });
+            })
+            ->paginate();
     }
 
     /**

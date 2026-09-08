@@ -82,34 +82,40 @@ trait ApiResponseTrait
      * Build pagination metadata from a paginator.
      *
      * Centralizes the meta shape so controllers remain DRY:
-     * meta: [current_page, per_page, total, last_page]
+     * meta: [page, per_page, total, total_pages]
      *
-     * @return array{current_page: int, per_page: int, total: int, last_page: int}
+     * @return array{page: int, per_page: int, total: int, total_pages: int}
      */
     public function paginationMeta(LengthAwarePaginator $paginator): array
     {
         return [
-            'current_page' => $paginator->currentPage(),
+            'page' => $paginator->currentPage(),
             'per_page' => $paginator->perPage(),
             'total' => $paginator->total(),
-            'last_page' => $paginator->lastPage(),
+            'total_pages' => $paginator->lastPage(),
         ];
     }
 
     /**
      * Build a paginated success response reusing paginationMeta().
      *
-     * @param  LengthAwarePaginator<int, mixed>  $paginator  Paginator carrying zero-filled report rows.
+     * Pass the already-transformed payload (e.g. `RoomResource::collection($paginator->items())`)
+     * so Eloquent Resources stay in charge of presentation while meta stays consistent:
+     * meta: [page, per_page, total, total_pages]
+     *
+     * @param  LengthAwarePaginator<int, mixed>  $paginator  Paginator the meta is derived from.
+     * @param  mixed  $data  Transformed page items, typically a resource collection.
      * @param  string  $message  Success message.
      * @param  int  $code  HTTP status code.
      */
     public function paginatedResponse(
         LengthAwarePaginator $paginator,
+        mixed $data,
         string $message = 'Success',
         int $code = Response::HTTP_OK
     ): JsonResponse {
         return $this->successResponse(
-            data: $paginator->items(),
+            data: $data,
             message: $message,
             code: $code,
             meta: $this->paginationMeta($paginator),

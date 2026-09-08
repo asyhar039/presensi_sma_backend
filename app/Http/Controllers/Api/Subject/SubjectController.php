@@ -11,6 +11,7 @@ use App\Services\Subject\SubjectService;
 use App\Traits\ApiResponseTrait;
 use Dedoc\Scramble\Attributes\Endpoint;
 use Dedoc\Scramble\Attributes\Group;
+use Dedoc\Scramble\Attributes\QueryParameter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -25,16 +26,20 @@ class SubjectController extends Controller
     /**
      * List subjects with pagination.
      */
-    #[Endpoint(title: 'List subjects', description: 'Returns paginated subjects ordered by newest first.')]
+    #[Endpoint(title: 'List subjects', description: 'Returns paginated subjects searchable by name; sort by allowed columns.')]
+    #[QueryParameter('page', description: 'Current page number.', type: 'int', default: 1)]
+    #[QueryParameter('per_page', description: 'Items per page (max 50).', type: 'int', default: 10)]
+    #[QueryParameter('search', description: 'Search by subject name.', type: 'string')]
+    #[QueryParameter('sortBy', description: 'Sort column: id, name, created_at.', type: 'string')]
+    #[QueryParameter('order', description: 'Sort direction: asc or desc.', type: 'string')]
     public function index(Request $request): JsonResponse
     {
-        $paginator = $this->subjectService->paginate((int) $request->integer('per_page', 15));
+        $paginator = $this->subjectService->paginate($request);
 
-        return $this->successResponse(
-            data: SubjectResource::collection($paginator->items()),
-            message: 'Subjects retrieved successfully.',
-            code: Response::HTTP_OK,
-            meta: $this->paginationMeta($paginator)
+        return $this->paginatedResponse(
+            $paginator,
+            SubjectResource::collection($paginator->items()),
+            'Subjects retrieved successfully.'
         );
     }
 

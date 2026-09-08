@@ -55,7 +55,7 @@ test('admin can crud classrooms', function (): void {
         ->assertCreated()->json('data');
 
     $this->withToken($token)->getJson('/classrooms')->assertOk()
-        ->assertJsonStructure(['data', 'meta' => ['current_page', 'per_page', 'total', 'last_page']]);
+        ->assertJsonStructure(['data', 'meta' => ['page', 'per_page', 'total', 'total_pages']]);
 
     $this->withToken($token)->getJson("/classrooms/{$created['id']}")
         ->assertOk()->assertJsonPath('data.name', 'XII IPA 1');

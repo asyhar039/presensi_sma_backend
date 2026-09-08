@@ -94,7 +94,7 @@ test('admin can list, show, update and delete academic years', function (): void
 
     $this->withToken($token)->getJson('/academic-years')
         ->assertOk()
-        ->assertJsonStructure(['data', 'meta' => ['current_page', 'per_page', 'total', 'last_page']]);
+        ->assertJsonStructure(['data', 'meta' => ['page', 'per_page', 'total', 'total_pages']]);
 
     $this->withToken($token)->getJson("/academic-years/{$academicYear->id}")
         ->assertOk()
