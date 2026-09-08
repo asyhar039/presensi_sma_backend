@@ -14,6 +14,13 @@ class AttendanceController extends Controller
 {
     public function store(StoreAttendanceRequest $request): JsonResponse
     {
+        $student = auth()->user()->student;
+
+        if (!$student) {
+            return response()->json([
+                'message' => 'Akun ini bukan akun siswa'
+            ], 403);
+        }
 
         $schedule = Schedule::findOrFail($request->schedule_id);
 
@@ -29,7 +36,7 @@ class AttendanceController extends Controller
 
         $attendance = Attendance::create([
             'schedule_id' => $request->schedule_id,
-            'student_id' => $request->student_id,
+            'student_id' => $student->id,
             'attendance_date' => $request->attendance_date,
             'check_in' => $request->check_in,
             'status' => $status,
