@@ -72,6 +72,9 @@ Route::patch('/schedules/{schedule}/activate', [ScheduleController::class, 'acti
 
 Route::middleware('auth:sanctum')->group(function () {
    
+    //guru
+    Route::get('/guru/schedules', [ScheduleController::class, 'mySchedules']);
+
     //siswa
     Route::get('/permission-requests', [PermissionRequestController::class,'index']);
     Route::post('/permission-requests', [PermissionRequestController::class,'store']);

@@ -78,6 +78,25 @@ class ScheduleController extends Controller
         return new ScheduleResource($schedule);
     }
 
+    public function mySchedules(){
+        $teacher = auth()->user()->teacher;
+
+        if(!$teacher) {
+            return response()->json([
+                'message' => 'Akun ini bukan akun guru',
+            ], 403);
+        }
+
+        $schedules = Schedule::where('teacher_id', $teacher->id)->with([
+            'teacher.user',
+            'mapel',
+            'schoolClass',
+            'room',
+        ])->get();
+
+        return ScheduleResource::collection($schedules);
+    }
+
     public function deactivate(Schedule $schedule) {
          $schedule->update([
         'is_active' => false,
