@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\ScheduleController;
 use App\Http\Controllers\Api\AttendanceController;
 use App\Http\Controllers\Api\WaliKelasController;
 use App\Http\Controllers\Api\PermissionRequestController;
+use App\Http\Controllers\Api\SchoolSettingController;
 use Illuminate\Support\Facades\DB;
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -59,6 +60,9 @@ Route::post('/schedules', [ScheduleController::class, 'store']);
 Route::get('/schedules/{schedule}', [ScheduleController::class, 'show']);
 Route::put('/schedules/{schedule}', [ScheduleController::class, 'update']);
 
+Route::get('/school-setting', [SchoolSettingController::class, 'show']);
+Route::put('/school-setting', [SchoolSettingController::class, 'update']);
+
 Route::patch('/teachers/{teacher}/deactivate', [TeacherController::class, 'deactivate']);
 Route::patch('/teachers/{teacher}/activate', [TeacherController::class, 'activate']);
 Route::patch('/classes/{schoolClass}/deactivate', [SchoolClassController::class, 'deactivate']);
@@ -74,7 +78,7 @@ Route::middleware('auth:sanctum')->group(function () {
    
     //guru
     Route::get('/guru/schedules', [ScheduleController::class, 'mySchedules']);
-
+    Route::post('/guru/schedules/{schedule}/qr',[ScheduleController::class, 'generateQr']);
     //siswa
     Route::get('/permission-requests', [PermissionRequestController::class,'index']);
     Route::post('/permission-requests', [PermissionRequestController::class,'store']);
