@@ -26,6 +26,7 @@ class DashboardController extends Controller
         $totalRooms = Room::count();
         $totalMapels = Mapel::count();
 
+ 
         $dayMap = [
             'Monday' => 'Senin',
             'Tuesday' => 'Selasa',
@@ -43,13 +44,18 @@ class DashboardController extends Controller
             ->with('schoolClass.students')
             ->get();
 
+    
         $expectedAttendances = $todaySchedules->sum(
-            fn (Schedule $schedule) => $schedule->schoolClass->students->count()
+            fn (Schedule $schedule) =>
+                $schedule->schoolClass->students->count()
         );
 
         $todayScheduleIds = $todaySchedules->pluck('id');
 
-        $todayAttendances = Attendance::whereDate('attendance_date', $today)
+        $todayAttendances = Attendance::whereDate(
+            'attendance_date',
+            $today
+        )
             ->whereIn('schedule_id', $todayScheduleIds)
             ->count();
 
@@ -57,12 +63,28 @@ class DashboardController extends Controller
             ? round(($todayAttendances / $expectedAttendances) * 100, 1)
             : 0;
 
+        /*
+        |--------------------------------------------------------------------------
+        | 4. Sesi Mapel yang Sedang Berlangsung
+        |--------------------------------------------------------------------------
+        */
+
         $activeSubjectSessions = Schedule::where('is_active', true)
             ->where('day', $todayDay)
-            ->whereTime('start_time', '<=', $now->format('H:i:s'))
-            ->whereTime('end_time', '>=', $now->format('H:i:s'))
+            ->whereTime(
+                'start_time',
+                '<=',
+                $now->format('H:i:s')
+            )
+            ->whereTime(
+                'end_time',
+                '>=',
+                $now->format('H:i:s')
+            )
             ->count();
 
+
+        /** @var \Illuminate\Database\Eloquent\Collection<int, Attendance> $liveAttendances */
         $liveAttendances = Attendance::with([
             'student.user',
             'schedule.teacher.user',
@@ -72,8 +94,10 @@ class DashboardController extends Controller
             ->whereDate('attendance_date', $today)
             ->latest('check_in')
             ->take(10)
-            ->get()
-            ->map(function (Attendance $attendance) {
+            ->get();
+
+        $liveAttendances = $liveAttendances->map(
+            function (Attendance $attendance): array {
                 return [
                     'id' => $attendance->id,
 
@@ -96,9 +120,11 @@ class DashboardController extends Controller
                     'check_in' => $attendance->check_in,
                     'status' => $attendance->status,
                 ];
-            });
+            }
+        )->values();
 
-        $attendanceComposition = Attendance::whereDate(
+    
+        $attendanceCompositionData = Attendance::whereDate(
             'attendance_date',
             $today
         )
@@ -106,26 +132,79 @@ class DashboardController extends Controller
             ->groupBy('status')
             ->pluck('total', 'status');
 
+      
         $attendanceComposition = [
-            'hadir' => $attendanceComposition['hadir'] ?? 0,
-            'terlambat' => $attendanceComposition['terlambat'] ?? 0,
-            'izin' => $attendanceComposition['izin'] ?? 0,
-            'sakit' => $attendanceComposition['sakit'] ?? 0,
-            'alpa' => $attendanceComposition['alpa'] ?? 0,
+            [
+                'status' => 'hadir',
+                'label' => 'Hadir',
+                'total' => (int) ($attendanceCompositionData['hadir'] ?? 0),
+            ],
+            [
+                'status' => 'terlambat',
+                'label' => 'Terlambat',
+                'total' => (int) ($attendanceCompositionData['terlambat'] ?? 0),
+            ],
+            [
+                'status' => 'izin',
+                'label' => 'Izin',
+                'total' => (int) ($attendanceCompositionData['izin'] ?? 0),
+            ],
+            [
+                'status' => 'sakit',
+                'label' => 'Sakit',
+                'total' => (int) ($attendanceCompositionData['sakit'] ?? 0),
+            ],
+            [
+                'status' => 'alpa',
+                'label' => 'Alpa',
+                'total' => (int) ($attendanceCompositionData['alpa'] ?? 0),
+            ],
         ];
 
-        return response()->json([
+
+        $summary = [
+            [
+                'key' => 'total_students',
+                'label' => 'Total Siswa',
+                'value' => $totalStudents,
+            ],
+            [
+                'key' => 'total_teachers',
+                'label' => 'Total Guru',
+                'value' => $totalTeachers,
+            ],
+            [
+                'key' => 'total_classes',
+                'label' => 'Total Kelas',
+                'value' => $totalClasses,
+            ],
+            [
+                'key' => 'total_rooms',
+                'label' => 'Total Ruangan',
+                'value' => $totalRooms,
+            ],
+            [
+                'key' => 'total_mapels',
+                'label' => 'Total Mapel',
+                'value' => $totalMapels,
+            ],
+            [
+                'key' => 'attendance_today_percentage',
+                'label' => 'Presensi Hari Ini',
+                'value' => $attendanceTodayPercentage,
+            ],
+            [
+                'key' => 'active_subject_sessions',
+                'label' => 'Sesi Mapel Aktif',
+                'value' => $activeSubjectSessions,
+            ],
+        ];
+
+       return response()->json([
             'message' => 'Dashboard berhasil diambil.',
+
             'data' => [
-                'summary' => [
-                    'total_students' => $totalStudents,
-                    'total_teachers' => $totalTeachers,
-                    'total_classes' => $totalClasses,
-                    'total_rooms' => $totalRooms,
-                    'total_mapels' => $totalMapels,
-                    'attendance_today_percentage' => $attendanceTodayPercentage,
-                    'active_subject_sessions' => $activeSubjectSessions,
-                ],
+                'summary' => $summary,
 
                 'live_attendances' => $liveAttendances,
 

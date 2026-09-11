@@ -19,21 +19,30 @@ class StoreAttendanceRequest extends FormRequest
     {
         return true;
     }
+    protected function prepareForValidation(): void
+    {
+        $now = now();
 
+        $this->merge([
+            'attendance_date' => $now->toDateString(),
+            'check_in' => $now->format('H:i'),
+        ]);
+    }
     /**
      * Get the validation rules that apply to the request.
      *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
+    
     public function rules(): array
     {
         return [
-            'schedule_id' => ['required','exists:schedules,id', new ActiveSchedule,],
-            'student_id' => ['required','exists:students,id', new ActiveStudent, new StudentInScheduleClass($this->schedule_id),
+            'schedule_id' => ['required','exists:schedules,id', new ActiveSchedule, 
+            new ActiveStudent, 
+            new StudentInScheduleClass($this->schedule_id), 
             new AttendanceAlreadyExists(
-                $this->schedule_id,
-                $this->attendance_date
-            ),],
+                $this->schedule_id, 
+                $this->attendance_date)],
             'attendance_date' => ['required','date',],
             'check_in' => ['required','date_format:H:i', new AttendanceWithinSchedule(
                 $this->schedule_id,

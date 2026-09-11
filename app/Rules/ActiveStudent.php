@@ -16,10 +16,10 @@ class ActiveStudent implements ValidationRule
      */
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        $student = Student::with('user')->find($value);
+        $student = auth()->user()->student;
 
-        if(!$student) {
-            $fail('Siswa yang dipilih tidak ditemukan');
+        if (!$student) {
+            $fail('Akun ini bukan akun siswa');
             return;
         }
 

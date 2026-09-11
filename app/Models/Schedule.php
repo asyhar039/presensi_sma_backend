@@ -85,4 +85,9 @@ class Schedule extends Model
     {
         return $this->hasMany(Attendance::class);
     }
+
+    public function attendanceQrs(): HasMany
+    {
+        return $this->hasMany(AttendanceQr::class);
+    }
 }

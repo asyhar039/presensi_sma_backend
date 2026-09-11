@@ -16,7 +16,7 @@ class StudentInScheduleClass implements ValidationRule
     }
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        $student = Student::find($value);
+        $student = auth()->user()->student;
         $schedule = Schedule::find($this->scheduleId);
 
         if (!$student || !$schedule) {

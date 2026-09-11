@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\ScheduleController;
 use App\Http\Controllers\Api\AttendanceController;
 use App\Http\Controllers\Api\WaliKelasController;
 use App\Http\Controllers\Api\PermissionRequestController;
+use App\Http\Controllers\Api\SchoolSettingController;
 use Illuminate\Support\Facades\DB;
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -59,9 +60,8 @@ Route::post('/schedules', [ScheduleController::class, 'store']);
 Route::get('/schedules/{schedule}', [ScheduleController::class, 'show']);
 Route::put('/schedules/{schedule}', [ScheduleController::class, 'update']);
 
-Route::post('/attendances', [AttendanceController::class, 'store']);
-
-Route::get('/dashboard', [DashboardController::class, 'index']);
+Route::get('/school-setting', [SchoolSettingController::class, 'show']);
+Route::put('/school-setting', [SchoolSettingController::class, 'update']);
 
 Route::patch('/teachers/{teacher}/deactivate', [TeacherController::class, 'deactivate']);
 Route::patch('/teachers/{teacher}/activate', [TeacherController::class, 'activate']);
@@ -76,9 +76,13 @@ Route::patch('/schedules/{schedule}/activate', [ScheduleController::class, 'acti
 
 Route::middleware('auth:sanctum')->group(function () {
    
+    //guru
+    Route::get('/guru/schedules', [ScheduleController::class, 'mySchedules']);
+    Route::post('/guru/schedules/{schedule}/qr',[ScheduleController::class, 'generateQr']);
     //siswa
     Route::get('/permission-requests', [PermissionRequestController::class,'index']);
     Route::post('/permission-requests', [PermissionRequestController::class,'store']);
+    Route::post('/student/scan-qr',[AttendanceController::class, 'scanQr']);
     //wali kelas
     Route::get('/wali-kelas/permission-requests', [PermissionRequestController::class,'indexForWaliKelas']);
     Route::get('/wali-kelas/permission-requests/{id}', [PermissionRequestController::class,'show']);
@@ -88,6 +92,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/wali-kelas/students', [WaliKelasController::class,'students']);
     Route::get('/wali-kelas/attendances', [WaliKelasController::class,'attendances']);
     Route::get('/wali-kelas/attendance-summary', [WaliKelasController::class,'attendanceSummary']);
+
+    Route::get('/dashboard', [DashboardController::class, 'index']);
+
+    Route::post('/attendances', [AttendanceController::class, 'store']);
 });
 
 Route::get('/user', function (Request $request) {

@@ -16,8 +16,14 @@ class AttendanceAlreadyExists implements ValidationRule
     }
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
+        $student = auth()->user()->student;
+
+        if (!$student) {
+            return;
+        }
+
         $exists = Attendance::where('schedule_id', $this->scheduleId)
-            ->where('student_id', $value)
+            ->where('student_id', $student->id)
             ->where('attendance_date', $this->attendanceDate)
             ->exists();
 

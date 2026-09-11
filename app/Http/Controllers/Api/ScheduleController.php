@@ -7,6 +7,9 @@ use App\Http\Requests\StoreScheduleRequest;
 use App\Http\Requests\UpdateScheduleRequest;
 use App\Http\Resources\ScheduleResource;
 use App\Models\Schedule;
+use App\Models\AttendanceQr;
+use Carbon\Carbon;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 
 class ScheduleController extends Controller
@@ -78,6 +81,25 @@ class ScheduleController extends Controller
         return new ScheduleResource($schedule);
     }
 
+    public function mySchedules(){
+        $teacher = auth()->user()->teacher;
+
+        if(!$teacher) {
+            return response()->json([
+                'message' => 'Akun ini bukan akun guru',
+            ], 403);
+        }
+
+        $schedules = Schedule::where('teacher_id', $teacher->id)->with([
+            'teacher.user',
+            'mapel',
+            'schoolClass',
+            'room',
+        ])->get();
+
+        return ScheduleResource::collection($schedules);
+    }
+
     public function deactivate(Schedule $schedule) {
          $schedule->update([
         'is_active' => false,
@@ -107,6 +129,88 @@ class ScheduleController extends Controller
         ]);
 
         return new ScheduleResource($schedule);
+    }
+
+    public function generateQr(Schedule $schedule)
+    {
+        $teacher = auth()->user()->teacher;
+
+        if (!$teacher) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Akun ini bukan akun guru',
+            ], 403);
+        }
+
+        if ($schedule->teacher_id !== $teacher->id) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Anda tidak memiliki akses ke jadwal ini',
+            ], 403);
+        }
+
+        if (!$schedule->is_active) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Jadwal tidak aktif',
+            ], 422);
+        }
+
+        $now = now();
+
+        $dayMap = [
+            'Monday' => 'Senin',
+            'Tuesday' => 'Selasa',
+            'Wednesday' => 'Rabu',
+            'Thursday' => 'Kamis',
+            'Friday' => 'Jumat',
+            'Saturday' => 'Sabtu',
+            'Sunday' => 'Minggu',
+        ];
+
+        $today = $dayMap[$now->englishDayOfWeek];
+
+        if ($today !== $schedule->day) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'QR hanya dapat dibuat pada hari jadwal berlangsung',
+            ], 422);
+        }
+
+        $startTime = Carbon::createFromFormat('H:i:s', $schedule->start_time);
+
+        $endTime = Carbon::createFromFormat('H:i:s', $schedule->end_time);
+
+        $currentTime = Carbon::createFromFormat(
+            'H:i:s',
+            $now->format('H:i:s')
+        );
+
+        if ($currentTime->lt($startTime) || $currentTime->gt($endTime)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'QR hanya dapat dibuat selama jam jadwal berlangsung',
+            ], 422);
+        }
+
+        $qr = AttendanceQr::create([
+            'schedule_id' => $schedule->id,
+            'token' => Str::random(64),
+            'expires_at' => $endTime,
+            'is_active' => true,
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'QR presensi berhasil dibuat',
+            'data' => [
+                'id' => $qr->id,
+                'schedule_id' => $qr->schedule_id,
+                'token' => $qr->token,
+                'expires_at' => $qr->expires_at,
+                'is_active' => $qr->is_active,
+            ],
+        ], 201);
     }
 
 }
