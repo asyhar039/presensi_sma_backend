@@ -13,6 +13,8 @@
         "spatie/laravel-permission": "^6.25"
     },
     "require-dev": {
+        "barryvdh/laravel-ide-helper": "^3.7",
+        "doctrine/dbal": "^4.4",
         "fakerphp/faker": "^1.23",
         "larastan/larastan": "^3.10",
         "laravel/pail": "^1.2.2",

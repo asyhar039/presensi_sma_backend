@@ -9,6 +9,32 @@ use App\Models\User;
 use App\Models\Mapel;
 use App\Models\SchoolClass;
 
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property string $nip
+ * @property string|null $gender
+ * @property string|null $phone
+ * @property \Illuminate\Support\Carbon|null $birth_date
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, Mapel> $mapels
+ * @property-read int|null $mapels_count
+ * @property-read SchoolClass|null $schoolClass
+ * @property-read User $user
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Teacher newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Teacher newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Teacher query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Teacher whereBirthDate($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Teacher whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Teacher whereGender($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Teacher whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Teacher whereNip($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Teacher wherePhone($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Teacher whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Teacher whereUserId($value)
+ * @mixin \Eloquent
+ */
 class Teacher extends Model
 {
     //
@@ -31,20 +57,20 @@ class Teacher extends Model
     {
         return $this->belongsTo(User::class);
     }
-    public function kelas(): HasOne
+    
+    public function schoolClass(): HasOne
     {
-    return $this->hasOne(SchoolClass::class, 'wali_kelas_id');
+        return $this->hasOne(
+            SchoolClass::class,
+            'wali_kelas_id'
+        );
     }
+
     public function mapels()
     {
         return $this->belongsToMany(
             Mapel::class,
             'teacher_mapel'
         );
-    }
-
-    public function walikelas(): HasOne
-    {
-        return $this->hasOne(SchoolClass::class, 'wali_kelas_id');
     }
 }

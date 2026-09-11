@@ -1,0 +1,50 @@
+name: Production Deployment Gate
+
+on:
+
+  push:
+    branches:
+      - production
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+
+  production-validation:
+
+    name: Production Validation
+
+    runs-on: ubuntu-24.04
+
+    steps:
+
+      - name: Validate production URL
+        env:
+          PRODUCTION_URL: ${{ vars.PRODUCTION_URL }}
+        run: |
+
+          if [ -z "$PRODUCTION_URL" ]; then
+            echo "PRODUCTION_URL is not configured."
+            exit 1
+          fi
+
+
+      - name: Production smoke test
+        env:
+          PRODUCTION_URL: ${{ vars.PRODUCTION_URL }}
+        run: |
+
+          curl \
+            --fail \
+            --silent \
+            --show-error \
+            "${PRODUCTION_URL}/health"
+
+
+      - name: Deployment successful
+        run: |
+
+          echo "Production deployment is healthy."
