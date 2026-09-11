@@ -82,6 +82,7 @@ Route::middleware('auth:sanctum')->group(function () {
     //siswa
     Route::get('/permission-requests', [PermissionRequestController::class,'index']);
     Route::post('/permission-requests', [PermissionRequestController::class,'store']);
+    Route::post('/student/scan-qr',[AttendanceController::class, 'scanQr']);
     //wali kelas
     Route::get('/wali-kelas/permission-requests', [PermissionRequestController::class,'indexForWaliKelas']);
     Route::get('/wali-kelas/permission-requests/{id}', [PermissionRequestController::class,'show']);
