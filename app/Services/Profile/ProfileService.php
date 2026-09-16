@@ -16,7 +16,7 @@ class ProfileService
         $user->fill($data);
         $user->save();
 
-        return $user->refresh()->loadMissing(['roles', 'permissions']);
+        return $user->refresh();
     }
 
     /**

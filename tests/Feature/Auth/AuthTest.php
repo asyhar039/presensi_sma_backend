@@ -4,18 +4,12 @@ use App\Enums\RoleEnum;
 use App\Models\Student;
 use App\Models\Teacher;
 use App\Models\User;
-use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function (): void {
-    $this->seed(RolePermissionSeeder::class);
-});
-
 test('user can login and receive a token', function (): void {
-    $user = User::factory()->create();
-    $user->assignRole(RoleEnum::Admin->value);
+    $user = User::factory()->admin()->create();
 
     $response = $this->postJson('/auth/login', [
         'email' => $user->email,
@@ -23,7 +17,7 @@ test('user can login and receive a token', function (): void {
     ]);
 
     $response->assertOk()
-        ->assertJsonStructure(['message', 'data' => ['token', 'token_type', 'user' => ['id', 'email', 'roles', 'permissions']]])
+        ->assertJsonStructure(['message', 'data' => ['token', 'token_type', 'user' => ['id', 'email', 'role']]])
         ->assertJsonPath('data.token_type', 'Bearer');
 });
 
@@ -46,16 +40,15 @@ test('login requires email and password', function (): void {
         ->assertJsonStructure(['data' => ['email', 'password']]);
 });
 
-test('authenticated user can fetch me with roles and permissions', function (): void {
-    $user = User::factory()->create();
-    $user->assignRole(RoleEnum::Admin->value);
+test('authenticated user can fetch me with role', function (): void {
+    $user = User::factory()->admin()->create();
     $token = $user->createToken('auth-token')->plainTextToken;
 
     $response = $this->withToken($token)->getJson('/auth/me');
 
     $response->assertOk()
         ->assertJsonPath('data.email', $user->email)
-        ->assertJsonStructure(['data' => ['roles', 'permissions']]);
+        ->assertJsonStructure(['data' => ['role']]);
 });
 
 test('guests cannot access me, information, or logout', function (): void {
@@ -65,8 +58,7 @@ test('guests cannot access me, information, or logout', function (): void {
 });
 
 test('user can logout and token is revoked', function (): void {
-    $user = User::factory()->create();
-    $user->assignRole(RoleEnum::Teacher->value);
+    $user = User::factory()->teacher()->create();
     $token = $user->createToken('auth-token')->plainTextToken;
 
     $this->withToken($token)->postJson('/auth/logout')->assertOk();
@@ -78,8 +70,7 @@ test('user can logout and token is revoked', function (): void {
 });
 
 test('information returns teacher profile for teacher', function (): void {
-    $teacherUser = User::factory()->create();
-    $teacherUser->assignRole(RoleEnum::Teacher->value);
+    $teacherUser = User::factory()->teacher()->create();
     Teacher::factory()->for($teacherUser)->create();
     $token = $teacherUser->createToken('auth-token')->plainTextToken;
 
@@ -91,8 +82,7 @@ test('information returns teacher profile for teacher', function (): void {
 });
 
 test('information returns student profile for student', function (): void {
-    $studentUser = User::factory()->create();
-    $studentUser->assignRole(RoleEnum::Student->value);
+    $studentUser = User::factory()->student()->create();
     Student::factory()->for($studentUser)->create();
     $token = $studentUser->createToken('auth-token')->plainTextToken;
 
@@ -104,8 +94,7 @@ test('information returns student profile for student', function (): void {
 });
 
 test('information returns null profile for admin without detail', function (): void {
-    $admin = User::factory()->create();
-    $admin->assignRole(RoleEnum::Admin->value);
+    $admin = User::factory()->admin()->create();
     $token = $admin->createToken('auth-token')->plainTextToken;
 
     $this->withToken($token)->getJson('/auth/information')
