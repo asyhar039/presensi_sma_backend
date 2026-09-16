@@ -24,26 +24,4 @@ enum RoleEnum: string
     {
         return array_column(self::cases(), 'value');
     }
-
-    /**
-     * Default permissions granted to this role.
-     *
-     * @return list<PermissionEnum>
-     */
-    public function permissions(): array
-    {
-        return match ($this) {
-            self::Admin => PermissionEnum::cases(),
-            self::Teacher => [
-                PermissionEnum::ViewDashboard,
-                PermissionEnum::ViewAttendances,
-                PermissionEnum::ManageAttendances,
-                PermissionEnum::ManageStudents,
-            ],
-            self::Student => [
-                PermissionEnum::ViewDashboard,
-                PermissionEnum::ViewAttendances,
-            ],
-        };
-    }
 }

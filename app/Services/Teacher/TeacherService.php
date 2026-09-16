@@ -56,8 +56,8 @@ class TeacherService
                 'email' => $data['email'],
                 'phone_number' => $data['phone_number'] ?? null,
                 'password' => $data['password'],
+                'role' => RoleEnum::Teacher,
             ]);
-            $user->assignRole(RoleEnum::Teacher->value);
 
             $teacher = Teacher::query()->create([
                 'user_id' => $user->id,

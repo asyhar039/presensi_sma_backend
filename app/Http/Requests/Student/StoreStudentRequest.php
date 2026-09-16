@@ -4,6 +4,7 @@ namespace App\Http\Requests\Student;
 
 use App\Enums\Enums\GenderEnums;
 use App\Enums\Enums\StudentStatusEnums;
+use App\Enums\RoleEnum;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -11,7 +12,7 @@ class StoreStudentRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->hasRole('admin') ?? false;
+        return $this->user()?->hasRole(RoleEnum::Admin) ?? false;
     }
 
     /**

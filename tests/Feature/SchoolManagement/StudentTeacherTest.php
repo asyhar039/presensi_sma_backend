@@ -4,20 +4,14 @@ use App\Enums\RoleEnum;
 use App\Models\Student;
 use App\Models\Teacher;
 use App\Models\User;
-use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function (): void {
-    $this->seed(RolePermissionSeeder::class);
-});
-
 function schoolAdminToken(string $role = 'admin'): string
 {
-    $user = User::factory()->create();
-    $user->assignRole($role === 'admin' ? RoleEnum::Admin->value : RoleEnum::Student->value);
+    $user = User::factory()->create(['role' => $role === 'admin' ? RoleEnum::Admin : RoleEnum::Student]);
 
     return $user->createToken('auth-token')->plainTextToken;
 }

@@ -28,8 +28,6 @@ class AuthService
             ]);
         }
 
-        $user->loadMissing(['roles', 'permissions']);
-
         $token = $user->createToken('auth-token')->plainTextToken;
 
         return ['user' => $user, 'token' => $token];
@@ -44,11 +42,11 @@ class AuthService
     }
 
     /**
-     * Get the authenticated user with their roles, permissions, and profile.
+     * Get the authenticated user with their detail profile.
      */
     public function getAuthenticatedUser(User $user): User
     {
-        return $user->loadMissing(['roles', 'permissions', 'student', 'teacher']);
+        return $user->loadMissing(['student', 'teacher']);
     }
 
     /**
@@ -56,14 +54,12 @@ class AuthService
      */
     public function getInformation(User $user): array
     {
-        $user->loadMissing(['roles', 'permissions', 'student', 'teacher']);
-
-        $profile = $user->student ?? $user->teacher;
+        $user->loadMissing(['student', 'teacher']);
 
         return [
             'user' => $user,
-            'profile' => $profile,
-            'role' => $user->getRoleNames()->first(),
+            'profile' => $user->student ?? $user->teacher,
+            'role' => $user->role?->value,
         ];
     }
 }

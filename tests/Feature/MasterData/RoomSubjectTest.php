@@ -4,19 +4,13 @@ use App\Enums\RoleEnum;
 use App\Models\Room;
 use App\Models\Subject;
 use App\Models\User;
-use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function (): void {
-    $this->seed(RolePermissionSeeder::class);
-});
-
 function masterDataToken(string $role = 'admin'): string
 {
-    $user = User::factory()->create();
-    $user->assignRole($role === 'admin' ? RoleEnum::Admin->value : RoleEnum::Student->value);
+    $user = User::factory()->create(['role' => $role === 'admin' ? RoleEnum::Admin : RoleEnum::Student]);
 
     return $user->createToken('auth-token')->plainTextToken;
 }

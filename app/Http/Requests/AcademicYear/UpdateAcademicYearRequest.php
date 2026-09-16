@@ -3,6 +3,7 @@
 namespace App\Http\Requests\AcademicYear;
 
 use App\Enums\Enums\SemesterEnums;
+use App\Enums\RoleEnum;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -10,7 +11,7 @@ class UpdateAcademicYearRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->hasRole('admin') ?? false;
+        return $this->user()?->hasRole(RoleEnum::Admin) ?? false;
     }
 
     /**

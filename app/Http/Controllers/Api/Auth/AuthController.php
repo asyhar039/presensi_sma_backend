@@ -52,7 +52,7 @@ class AuthController extends Controller
     /**
      * Get the currently authenticated user.
      */
-    #[Endpoint(title: 'Authenticated user', description: 'Returns the bearer-token owner with roles and permissions.')]
+    #[Endpoint(title: 'Authenticated user', description: 'Returns the bearer-token owner with their role.')]
     public function me(Request $request): JsonResponse
     {
         $user = $this->authService->getAuthenticatedUser($request->user());

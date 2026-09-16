@@ -23,14 +23,7 @@ class UserResource extends JsonResource
             'email' => $this->email,
             'phone_number' => $this->phone_number,
             'email_verified_at' => $this->email_verified_at?->toISOString(),
-            'roles' => $this->when(
-                $this->relationLoaded('roles') || method_exists($this->resource, 'getRoleNames'),
-                fn () => $this->getRoleNames()->values()
-            ),
-            'permissions' => $this->when(
-                $this->relationLoaded('permissions') || method_exists($this->resource, 'getAllPermissions'),
-                fn () => $this->getAllPermissions()->pluck('name')->values()
-            ),
+            'role' => $this->role?->value,
         ];
     }
 }

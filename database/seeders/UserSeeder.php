@@ -16,21 +16,21 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         DB::transaction(function (): void {
-            $admin = $this->seedUser(
+            $this->seedUser(
                 email: 'admin@example.com',
                 name: 'Admin User',
                 identityNumber: 'ADM001',
                 phoneNumber: '081200000001',
+                role: RoleEnum::Admin,
             );
-            $admin->syncRoles([RoleEnum::Admin->value]);
 
             $teacherUser = $this->seedUser(
                 email: 'teacher@example.com',
                 name: 'Teacher User',
                 identityNumber: 'TCH001',
                 phoneNumber: '081200000002',
+                role: RoleEnum::Teacher,
             );
-            $teacherUser->syncRoles([RoleEnum::Teacher->value]);
             $teacherUser->teacher()->updateOrCreate(
                 ['user_id' => $teacherUser->id],
                 [
@@ -45,8 +45,8 @@ class UserSeeder extends Seeder
                 name: 'Student User',
                 identityNumber: 'STD001',
                 phoneNumber: '081200000003',
+                role: RoleEnum::Student,
             );
-            $studentUser->syncRoles([RoleEnum::Student->value]);
             $studentUser->student()->updateOrCreate(
                 ['user_id' => $studentUser->id],
                 [
@@ -58,7 +58,7 @@ class UserSeeder extends Seeder
         });
     }
 
-    private function seedUser(string $email, string $name, string $identityNumber, string $phoneNumber): User
+    private function seedUser(string $email, string $name, string $identityNumber, string $phoneNumber, RoleEnum $role): User
     {
         /** @var User $user */
         $user = User::query()->updateOrCreate(
@@ -69,6 +69,7 @@ class UserSeeder extends Seeder
                 'phone_number' => $phoneNumber,
                 'password' => Hash::make('password'),
                 'email_verified_at' => now(),
+                'role' => $role,
             ]
         );
 
