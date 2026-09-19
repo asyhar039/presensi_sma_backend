@@ -13,6 +13,8 @@ class DatabaseSeeder extends Seeder
             AcademicYearSeeder::class,
             RoomSeeder::class,
             SubjectSeeder::class,
+            ScheduleSettingSeeder::class,
+            PublicHolidaySettingSeeder::class,
         ]);
     }
 }
