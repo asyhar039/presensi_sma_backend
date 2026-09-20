@@ -2,37 +2,35 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Enums\PermissionEnum;
+use App\Enums\RoleEnum;
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 class RolePermissionSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        //
-        $superAdmin = Role::findByName('Super Admin', 'web');
-        $guru = Role::findByName('Guru', 'web');
-        $siswa = Role::findByName('Siswa', 'web');
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        //super admin bisa akses semua permission
-        $superAdmin->syncPermissions(Permission::all());
+        foreach (PermissionEnum::cases() as $permission) {
+            Permission::firstOrCreate([
+                'name' => $permission->value,
+                'guard_name' => 'web',
+            ]);
+        }
 
-        //Permission dinggo guru
-        $guru->syncPermissions([
-            'view schedules',
-            'view attendances',
-            'generate attendance qr',
-            'view attendance reports',
-        ]);
+        foreach (RoleEnum::cases() as $role) {
+            $roleModel = Role::firstOrCreate([
+                'name' => $role->value,
+                'guard_name' => 'web',
+            ]);
 
-        //Permission dinggo siswa
-        $siswa->syncPermissions([
-            'view attendances',
-        ]);
+            $roleModel->syncPermissions(
+                collect($role->permissions())->map(fn (PermissionEnum $permission): string => $permission->value)->all()
+            );
+        }
     }
 }

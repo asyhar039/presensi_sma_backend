@@ -2,77 +2,54 @@
 
 namespace App\Models;
 
+use App\Enums\Enums\GenderEnums;
+use App\Enums\Enums\StudentStatusEnums;
+use Database\Factories\StudentFactory;
+use Illuminate\Database\Eloquent\Attributes\CollectedBy;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Models\Attendance;
-use App\Models\PermissionRequest;
 
-/**
- * @property int $id
- * @property int $user_id
- * @property string $nis
- * @property string $gender
- * @property string $phone
- * @property \Illuminate\Support\Carbon $birth_date
- * @property int $class_id
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \Illuminate\Database\Eloquent\Collection<int, Attendance> $attendances
- * @property-read int|null $attendances_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, PermissionRequest> $permissionRequests
- * @property-read int|null $permission_requests_count
- * @property-read \App\Models\SchoolClass $schoolClass
- * @property-read \App\Models\User $user
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Student newModelQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Student newQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Student query()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Student whereBirthDate($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Student whereClassId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Student whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Student whereGender($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Student whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Student whereNis($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Student wherePhone($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Student whereUpdatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Student whereUserId($value)
- * @mixin \Eloquent
- */
+#[Fillable(['user_id', 'gender', 'address', 'status'])]
+#[CollectedBy(Collection::class)]
 class Student extends Model
 {
-    protected $fillable = [
-        'user_id',
-        'nis',
-        'gender',
-        'phone',
-        'birth_date',
-        'class_id',
-    ];
+    /** @use HasFactory<StudentFactory> */
+    use HasFactory;
 
     protected function casts(): array
     {
         return [
-            'birth_date' => 'date',
+            'gender' => GenderEnums::class,
+            'status' => StudentStatusEnums::class,
         ];
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function schoolClass(): BelongsTo
+    /**
+     * @return BelongsToMany<Classroom, $this>
+     */
+    public function classrooms(): BelongsToMany
     {
-        return $this->belongsTo(SchoolClass::class, 'class_id');
+        return $this->belongsToMany(Classroom::class, 'student_classrooms')->withTimestamps();
     }
 
-    public function attendances(): HasMany
+    /**
+     * @return HasMany<StudentClassroom, $this>
+     */
+    public function studentClassrooms(): HasMany
     {
-        return $this->hasMany(Attendance::class);
-    }
-
-    public function permissionRequests(): HasMany
-    {
-        return $this->hasMany(PermissionRequest::class);
+        return $this->hasMany(StudentClassroom::class);
     }
 }

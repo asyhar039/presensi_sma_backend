@@ -2,41 +2,28 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Student;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin Student
+ */
 class StudentResource extends JsonResource
 {
     /**
-     * Transform the resource into an array.
-     *
      * @return array<string, mixed>
      */
     public function toArray(Request $request): array
     {
         return [
             'id' => $this->id,
-            'nis' => $this->nis,
-            'gender' => $this->gender,
-            'phone' => $this->phone,
-            'birth_date' => $this->birth_date?->format('Y-m-d'),
-
-            'user' => $this->whenLoaded('user', function () {
-                return [
-                    'id' => $this->user->id,
-                    'name' => $this->user->name,
-                    'email' => $this->user->email,
-                    'is_active' => $this->user->is_active,
-                ];
-            }),
-
-            'class' => $this->whenLoaded('schoolClass', function () {
-                return [
-                    'id' => $this->schoolClass->id,
-                    'name' => $this->schoolClass->name,
-                    'is_active' => $this->schoolClass->is_active,
-                ];
-            }),
+            'user' => UserResource::make($this->whenLoaded('user')),
+            'gender' => $this->gender?->keyLabel(),
+            'address' => $this->address,
+            'status' => $this->status?->keyLabel(),
+            'created_at' => $this->created_at?->toISOString(),
+            'updated_at' => $this->updated_at?->toISOString(),
         ];
     }
 }
