@@ -2,14 +2,23 @@
 
 namespace Database\Seeders;
 
-use App\Services\Setting\PublicHolidaySettingService;
+use App\Models\PublicHoliday;
 use Illuminate\Database\Seeder;
 
-class PublicHolidaySettingSeeder extends Seeder
+class PublicHolidaySeeder extends Seeder
 {
     public function run(): void
     {
-        app(PublicHolidaySettingService::class)->replace($this->holidays());
+        $now = now();
+
+        $holidays = array_map(fn ($val) => [
+            'name' => $val['name'],
+            'date' => $val['date'],
+            'created_at' => $now,
+            'updated_at' => $now,
+        ], $this->holidays());
+
+        PublicHoliday::insert($holidays);
     }
 
     /**

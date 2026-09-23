@@ -67,10 +67,9 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function (): void {
         Route::put('schedules', [ScheduleSettingController::class, 'update'])->name('schedules.update');
 
         Route::get('public-holidays', [PublicHolidaySettingController::class, 'index'])->name('public-holidays.index');
-        Route::put('public-holidays', [PublicHolidaySettingController::class, 'update'])->name('public-holidays.update');
-        Route::delete('public-holidays/{date}', [PublicHolidaySettingController::class, 'destroy'])
-            ->where('date', '[0-9]{4}-[0-9]{2}-[0-9]{2}')
-            ->name('public-holidays.destroy');
+        Route::post('public-holidays', [PublicHolidaySettingController::class, 'store'])->name('public-holidays.store');
+        Route::put('public-holidays/{publicHoliday}', [PublicHolidaySettingController::class, 'update'])->name('public-holidays.update');
+        Route::delete('public-holidays/{publicHoliday}', [PublicHolidaySettingController::class, 'destroy'])->name('public-holidays.destroy');
 
         Route::get('school-zones', [SchoolZoneSettingController::class, 'index'])->name('school-zones.index');
         Route::put('school-zones', [SchoolZoneSettingController::class, 'update'])->name('school-zones.update');

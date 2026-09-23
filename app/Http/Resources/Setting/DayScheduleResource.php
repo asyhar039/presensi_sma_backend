@@ -9,7 +9,6 @@ use Illuminate\Http\Resources\Json\JsonResource;
  * @mixin \stdClass
  *
  * @property array{day: string, schedules: list<array{start: string, end: string, is_break: bool}>}
- *
  */
 class DayScheduleResource extends JsonResource
 {
