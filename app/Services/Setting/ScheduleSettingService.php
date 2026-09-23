@@ -53,14 +53,10 @@ class ScheduleSettingService
      */
     private function normalizeSchedules(array $schedules): array
     {
-        $normalized = array_map(fn (array $schedule): array => [
+        return array_map(fn (array $schedule): array => [
             'start' => $schedule['start'],
             'end' => $schedule['end'],
             'is_break' => (bool) ($schedule['is_break'] ?? false),
         ], array_values($schedules));
-
-        usort($normalized, fn (array $a, array $b): int => $a['start'] <=> $b['start']);
-
-        return $normalized;
     }
 }

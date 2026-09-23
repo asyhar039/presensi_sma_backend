@@ -64,12 +64,12 @@ class ScheduleSettingController extends Controller
     /**
      * Create or update the schedule of a day.
      */
-    #[Endpoint(title: 'Upsert day schedule', description: 'Replaces the schedule slots of one day. Slots must be ordered end-to-start with no overlaps and no gaps.')]
+    #[Endpoint(title: 'Upsert day schedule', description: 'Replaces the schedule slots of one day. An empty or omitted schedules array marks a holiday. Non-empty schedules must be sorted start-to-end with no overlaps or gaps, and include at least 1 break and 4 non-break slots.')]
     public function update(UpdateDayScheduleRequest $request): JsonResponse
     {
         $validated = $request->validated();
 
-        $schedules = $this->scheduleSettings->updateDay($validated['day'], $validated['schedules']);
+        $schedules = $this->scheduleSettings->updateDay($validated['day'], $validated['schedules'] ?? []);
 
         return $this->successResponse(
             data: DayScheduleResource::make(['day' => $validated['day'], 'schedules' => $schedules]),
