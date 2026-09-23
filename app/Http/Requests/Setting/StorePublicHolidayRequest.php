@@ -3,11 +3,12 @@
 namespace App\Http\Requests\Setting;
 
 use App\Enums\RoleEnum;
+use App\Rules\UniquePublicHolidayDate;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
-class UpdatePublicHolidaysRequest extends FormRequest
+class StorePublicHolidayRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -20,8 +21,8 @@ class UpdatePublicHolidaysRequest extends FormRequest
     public function rules(): array
     {
         return [
-            '*.name' => ['required', 'string', 'max:120', 'distinct'],
-            '*.date' => ['required', 'date_format:Y-m-d', 'distinct'],
+            'name' => ['required', 'string', 'max:120'],
+            'date' => ['required', 'date_format:Y-m-d', new UniquePublicHolidayDate],
         ];
     }
 
@@ -32,22 +33,14 @@ class UpdatePublicHolidaysRequest extends FormRequest
     {
         return [
             function (Validator $validator): void {
-                $holidays = $this->all();
-
-                if (! is_array($holidays) || ! array_is_list($holidays)) {
-                    $validator->errors()->add('holidays', 'The payload must be a JSON array of holidays.');
-
+                if ($validator->errors()->has('date')) {
                     return;
                 }
 
-                foreach (array_values($holidays) as $index => $holiday) {
-                    if (! is_array($holiday) || ! isset($holiday['date']) || ! is_string($holiday['date'])) {
-                        continue;
-                    }
+                $date = $this->input('date');
 
-                    if (! $this->isRealCalendarDate($holiday['date'])) {
-                        $validator->errors()->add("{$index}.date", 'The date must be a real calendar date.');
-                    }
+                if (is_string($date) && ! $this->isRealCalendarDate($date)) {
+                    $validator->errors()->add('date', 'The date must be a real calendar date.');
                 }
             },
         ];

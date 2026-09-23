@@ -2,13 +2,13 @@
 
 namespace App\Http\Resources\Setting;
 
+use App\Models\PublicHoliday;
+use DateTimeInterface;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * @mixin \stdClass
- *
- * @property array{name: string, date: string}
+ * @mixin PublicHoliday
  */
 class PublicHolidayResource extends JsonResource
 {
@@ -18,8 +18,11 @@ class PublicHolidayResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'name' => $this->resource['name'],
-            'date' => $this->resource['date'],
+            'id' => $this->id,
+            'name' => $this->name,
+            'date' => $this->date instanceof DateTimeInterface ? $this->date->format('Y-m-d') : $this->date,
+            'created_at' => $this->created_at?->toISOString(),
+            'updated_at' => $this->updated_at?->toISOString(),
         ];
     }
 }

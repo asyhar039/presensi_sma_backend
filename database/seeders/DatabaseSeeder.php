@@ -14,7 +14,7 @@ class DatabaseSeeder extends Seeder
             RoomSeeder::class,
             SubjectSeeder::class,
             ScheduleSettingSeeder::class,
-            PublicHolidaySettingSeeder::class,
+            PublicHolidaySeeder::class,
         ]);
     }
 }
