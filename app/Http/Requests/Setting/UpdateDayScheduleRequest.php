@@ -29,7 +29,7 @@ class UpdateDayScheduleRequest extends FormRequest
     {
         return [
             'day' => ['required', 'string', Rule::enum(DayEnum::class)],
-            'schedules' => ['required', 'array', new ContiguousSchedules],
+            'schedules' => ['sometimes', 'array', new ContiguousSchedules],
             'schedules.*.start' => ['required', 'date_format:H:i'],
             'schedules.*.end' => ['required', 'date_format:H:i'],
             'schedules.*.is_break' => ['sometimes', 'boolean'],

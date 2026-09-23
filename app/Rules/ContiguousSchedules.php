@@ -36,14 +36,18 @@ class ContiguousSchedules implements ValidationRule
             $ranges[] = ['index' => $index, 'start' => $start, 'end' => $end];
         }
 
-        usort($ranges, fn (array $a, array $b): int => $a['start'] <=> $b['start']);
-
         foreach ($ranges as $position => $range) {
             if (! isset($ranges[$position + 1])) {
                 break;
             }
 
             $next = $ranges[$position + 1];
+
+            if ($next['start'] < $range['start']) {
+                $fail("Schedule #{$next['index']} must be sorted chronologically after schedule #{$range['index']}.");
+
+                return;
+            }
 
             if ($next['start'] < $range['end']) {
                 $fail("Schedule #{$next['index']} overlaps schedule #{$range['index']}.");
@@ -56,6 +60,30 @@ class ContiguousSchedules implements ValidationRule
 
                 return;
             }
+        }
+
+        $schedules = array_values($value);
+        $breaks = 0;
+        $lessons = 0;
+
+        foreach ($schedules as $schedule) {
+            if (! empty($schedule['is_break'])) {
+                $breaks++;
+            } else {
+                $lessons++;
+            }
+        }
+
+        if ($breaks < 1) {
+            $fail('Schedules must include at least 1 break.');
+
+            return;
+        }
+
+        if ($lessons < 4) {
+            $fail('Schedules must include at least 4 non-break slots.');
+
+            return;
         }
     }
 
