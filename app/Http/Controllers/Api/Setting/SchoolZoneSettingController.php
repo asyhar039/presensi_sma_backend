@@ -3,13 +3,18 @@
 namespace App\Http\Controllers\Api\Setting;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Setting\UpdateSchoolZonesRequest;
+use App\Http\Requests\Setting\StoreSchoolZoneRequest;
+use App\Http\Requests\Setting\UpdateSchoolZoneActiveRequest;
+use App\Http\Requests\Setting\UpdateSchoolZoneRequest;
 use App\Http\Resources\Setting\SchoolZoneResource;
-use App\Services\Setting\SchoolZoneSettingService;
+use App\Models\SchoolZone;
+use App\Services\Setting\SchoolZoneService;
 use App\Traits\ApiResponseTrait;
 use Dedoc\Scramble\Attributes\Endpoint;
 use Dedoc\Scramble\Attributes\Group;
+use Dedoc\Scramble\Attributes\QueryParameter;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 #[Group('Settings', weight: 10)]
@@ -17,47 +22,81 @@ class SchoolZoneSettingController extends Controller
 {
     use ApiResponseTrait;
 
-    public function __construct(private SchoolZoneSettingService $schoolZones) {}
+    public function __construct(private SchoolZoneService $schoolZones) {}
 
     /**
      * List all school zones.
      */
-    #[Endpoint(title: 'List school zones', description: 'Returns every school zone polygon, without pagination.')]
-    public function index(): JsonResponse
+    #[Endpoint(title: 'List school zones', description: 'Returns every school zone without pagination. Pass is_active to filter by status.')]
+    #[QueryParameter('is_active', description: 'Filter by status: 1 for active, 0 for inactive. Omit to return all.', type: 'bool')]
+    public function index(Request $request): JsonResponse
     {
+        $filter = $request->query('is_active');
+
+        $isActive = match (true) {
+            $filter === '1' || $filter === 1 || $filter === true || $filter === 'true' => true,
+            $filter === '0' || $filter === 0 || $filter === false || $filter === 'false' => false,
+            default => null,
+        };
+
         return $this->successResponse(
-            data: SchoolZoneResource::collection($this->schoolZones->all()),
+            data: SchoolZoneResource::collection($this->schoolZones->list($isActive)),
             message: 'School zones retrieved successfully.'
         );
     }
 
     /**
-     * Replace all school zones.
+     * Create a school zone.
      */
-    #[Endpoint(title: 'Replace school zones', description: 'Replaces the whole school zone list. Accepts a JSON array of name and points pairs; each zone needs at least 3 latitude/longitude points.')]
-    public function update(UpdateSchoolZonesRequest $request): JsonResponse
+    #[Endpoint(title: 'Create school zone', description: 'Creates a single school zone with a unique name (max 32 characters), at least 3 polygon points, and an optional is_active flag (defaults to active).')]
+    public function store(StoreSchoolZoneRequest $request): JsonResponse
     {
-        $zones = $this->schoolZones->replace($request->validated());
+        $schoolZone = $this->schoolZones->create($request->validated());
 
         return $this->successResponse(
-            data: SchoolZoneResource::collection($zones),
-            message: 'School zones updated successfully.'
+            data: SchoolZoneResource::make($schoolZone),
+            message: 'School zone created successfully.',
+            code: Response::HTTP_CREATED
         );
     }
 
     /**
-     * Delete a school zone by name.
+     * Show a single school zone.
      */
-    #[Endpoint(title: 'Delete school zone', description: 'Removes the school zone matching the given name.')]
-    public function destroy(string $name): JsonResponse
+    #[Endpoint(title: 'Show school zone', description: 'Returns a single school zone by id.')]
+    public function show(SchoolZone $schoolZone): JsonResponse
     {
-        if (! $this->schoolZones->removeByName($name)) {
-            return $this->errorResponse(
-                message: 'School zone not found.',
-                code: Response::HTTP_NOT_FOUND
-            );
-        }
+        return $this->successResponse(
+            data: SchoolZoneResource::make($schoolZone),
+            message: 'School zone retrieved successfully.'
+        );
+    }
 
-        return $this->successResponse(message: 'School zone deleted successfully.');
+    /**
+     * Update a school zone.
+     */
+    #[Endpoint(title: 'Update school zone', description: 'Updates a single school zone by id, keeping the name unique. Accepts PUT, PATCH, or POST.')]
+    public function update(UpdateSchoolZoneRequest $request, SchoolZone $schoolZone): JsonResponse
+    {
+        $schoolZone = $this->schoolZones->update($schoolZone, $request->validated());
+
+        return $this->successResponse(
+            data: SchoolZoneResource::make($schoolZone),
+            message: 'School zone updated successfully.'
+        );
+    }
+
+    /**
+     * Update a school zone status.
+     */
+    #[Endpoint(title: 'Update school zone status', description: 'Activates or deactivates a single school zone by id.')]
+    public function updateActive(UpdateSchoolZoneActiveRequest $request, SchoolZone $schoolZone): JsonResponse
+    {
+        $schoolZone = $this->schoolZones->setActive($schoolZone, $request->validated());
+
+        return $this->successResponse(
+            data: SchoolZoneResource::make($schoolZone),
+            message: 'School zone status updated successfully.'
+        );
     }
 }
