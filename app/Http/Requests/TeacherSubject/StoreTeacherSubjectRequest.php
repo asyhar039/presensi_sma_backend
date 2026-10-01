@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\TeacherSubject;
 
+use App\Enums\RoleEnum;
 use App\Models\AcademicYear;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -9,7 +10,7 @@ class StoreTeacherSubjectRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->hasRole('admin') ?? false;
+        return $this->user()?->hasRole(RoleEnum::Admin) ?? false;
     }
 
     protected function prepareForValidation(): void

@@ -56,8 +56,8 @@ class StudentService
                 'email' => $data['email'],
                 'phone_number' => $data['phone_number'] ?? null,
                 'password' => $data['password'],
+                'role' => RoleEnum::Student,
             ]);
-            $user->assignRole(RoleEnum::Student->value);
 
             $student = Student::query()->create([
                 'user_id' => $user->id,

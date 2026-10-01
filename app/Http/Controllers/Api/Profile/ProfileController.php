@@ -49,11 +49,11 @@ class ProfileController extends Controller
     /**
      * Get the authenticated user's profile.
      */
-    #[Endpoint(title: 'Show profile', description: 'Returns the authenticated user profile with roles and permissions.')]
+    #[Endpoint(title: 'Show profile', description: 'Returns the authenticated user profile with their role.')]
     public function show(Request $request): JsonResponse
     {
         return $this->successResponse(
-            data: UserResource::make($request->user()->loadMissing(['roles', 'permissions'])),
+            data: UserResource::make($request->user()),
             message: 'Profile retrieved successfully.'
         );
     }

@@ -5,6 +5,9 @@ use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Classroom\ClassroomController;
 use App\Http\Controllers\Api\Profile\ProfileController;
 use App\Http\Controllers\Api\Room\RoomController;
+use App\Http\Controllers\Api\Setting\PublicHolidaySettingController;
+use App\Http\Controllers\Api\Setting\ScheduleSettingController;
+use App\Http\Controllers\Api\Setting\SchoolZoneSettingController;
 use App\Http\Controllers\Api\Student\StudentController;
 use App\Http\Controllers\Api\Subject\SubjectController;
 use App\Http\Controllers\Api\Teacher\TeacherController;
@@ -57,4 +60,21 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function (): void {
     Route::post('classrooms/{classroom}/students', [ClassroomController::class, 'syncStudents'])->name('classrooms.students.sync');
     Route::delete('classrooms/{classroom}/students/{student}', [ClassroomController::class, 'removeStudent'])->name('classrooms.students.remove');
     Route::apiResource('classrooms', ClassroomController::class);
+
+    Route::prefix('settings')->name('settings.')->group(function (): void {
+        Route::get('schedules', [ScheduleSettingController::class, 'index'])->name('schedules.index');
+        Route::get('schedules/{day}', [ScheduleSettingController::class, 'show'])->name('schedules.show');
+        Route::put('schedules', [ScheduleSettingController::class, 'update'])->name('schedules.update');
+
+        Route::get('public-holidays', [PublicHolidaySettingController::class, 'index'])->name('public-holidays.index');
+        Route::post('public-holidays', [PublicHolidaySettingController::class, 'store'])->name('public-holidays.store');
+        Route::put('public-holidays/{publicHoliday}', [PublicHolidaySettingController::class, 'update'])->name('public-holidays.update');
+        Route::delete('public-holidays/{publicHoliday}', [PublicHolidaySettingController::class, 'destroy'])->name('public-holidays.destroy');
+
+        Route::get('school-zones', [SchoolZoneSettingController::class, 'index'])->name('school-zones.index');
+        Route::post('school-zones', [SchoolZoneSettingController::class, 'store'])->name('school-zones.store');
+        Route::get('school-zones/{schoolZone}', [SchoolZoneSettingController::class, 'show'])->name('school-zones.show');
+        Route::put('school-zones/{schoolZone}', [SchoolZoneSettingController::class, 'update'])->name('school-zones.update');
+        Route::patch('school-zones/{schoolZone}/active', [SchoolZoneSettingController::class, 'updateActive'])->name('school-zones.active');
+    });
 });

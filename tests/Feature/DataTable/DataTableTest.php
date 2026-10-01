@@ -1,25 +1,18 @@
 <?php
 
-use App\Enums\RoleEnum;
 use App\Models\AcademicYear;
 use App\Models\Room;
 use App\Models\Student;
 use App\Models\Subject;
 use App\Models\Teacher;
 use App\Models\User;
-use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function (): void {
-    $this->seed(RolePermissionSeeder::class);
-});
-
 function dataTableToken(): string
 {
-    $user = User::factory()->create();
-    $user->assignRole(RoleEnum::Admin->value);
+    $user = User::factory()->admin()->create();
 
     return $user->createToken('auth-token')->plainTextToken;
 }

@@ -3,19 +3,13 @@
 use App\Enums\RoleEnum;
 use App\Models\AcademicYear;
 use App\Models\User;
-use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-beforeEach(function (): void {
-    $this->seed(RolePermissionSeeder::class);
-});
-
 function adminAcademicToken(string $role = 'admin'): string
 {
-    $user = User::factory()->create();
-    $user->assignRole($role === 'admin' ? RoleEnum::Admin->value : RoleEnum::Teacher->value);
+    $user = User::factory()->create(['role' => $role === 'admin' ? RoleEnum::Admin : RoleEnum::Teacher]);
 
     return $user->createToken('auth-token')->plainTextToken;
 }
