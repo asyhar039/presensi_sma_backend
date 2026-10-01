@@ -41,11 +41,9 @@ EXPOSE 8080
 CMD php artisan config:cache && \
     php artisan route:cache && \
     php artisan migrate --force && \
-    php artisan eval " \
-        if (\App\Models\AcademicYear::count() == 0) \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'AcademicYearSeeder', '--force' => true]); \
-        if (\App\Models\Room::count() == 0) \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'RoomSeeder', '--force' => true]); \
-        if (\App\Models\Subject::count() == 0) \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'SubjectSeeder', '--force' => true]); \
-        if (\App\Models\ScheduleSetting::count() == 0) \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'ScheduleSettingSeeder', '--force' => true]); \
-        if (\App\Models\PublicHoliday::count() == 0) \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'PublicHolidaySeeder', '--force' => true]); \
-    " && \
+    php artisan db:seed --class=AcademicYearSeeder --force && \
+    php artisan db:seed --class=RoomSeeder --force && \
+    php artisan db:seed --class=SubjectSeeder --force && \
+    php artisan db:seed --class=ScheduleSettingSeeder --force && \
+    php artisan db:seed --class=PublicHolidaySeeder --force && \
     php artisan serve --host=0.0.0.0 --port=${PORT:-8080}
