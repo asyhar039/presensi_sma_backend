@@ -50,6 +50,14 @@ class Classroom extends Model
     }
 
     /**
+     * @return HasMany<ClassSchedule, $this>
+     */
+    public function classSchedules(): HasMany
+    {
+        return $this->hasMany(ClassSchedule::class);
+    }
+
+    /**
      * @return HasMany<StudentClassroom, $this>
      */
     public function studentClassrooms(): HasMany

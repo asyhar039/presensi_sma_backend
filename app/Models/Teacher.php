@@ -54,6 +54,22 @@ class Teacher extends Model
     }
 
     /**
+     * @return HasMany<DutyTeacher, $this>
+     */
+    public function dutySchedules(): HasMany
+    {
+        return $this->hasMany(DutyTeacher::class);
+    }
+
+    /**
+     * @return HasMany<ClassSchedule, $this>
+     */
+    public function classSchedules(): HasMany
+    {
+        return $this->hasMany(ClassSchedule::class);
+    }
+
+    /**
      * @return HasMany<Classroom, $this>
      */
     public function homeroomClassrooms(): HasMany
