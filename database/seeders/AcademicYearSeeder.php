@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Enums\Enums\SemesterEnums;
 use App\Models\AcademicYear;
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 
 class AcademicYearSeeder extends Seeder
@@ -13,37 +14,28 @@ class AcademicYearSeeder extends Seeder
      */
     public function run(): void
     {
-        $startYear = 2025;
-        $currentYear = (int) date('Y');
-        $records = [];
+        $now = Carbon::now();
 
-        for ($year = $startYear; $year <= $currentYear; $year++) {
-            $nextYear = $year + 1;
-
-            $oddStart = "{$year}-07-14";
-            $oddEnd = "{$year}-12-19";
-            $evenStart = "{$nextYear}-01-05";
-            $evenEnd = "{$nextYear}-06-25";
-
-            $records[] = [
-                'start_date' => $oddStart,
-                'end_date' => $oddEnd,
-                'semester' => SemesterEnums::ODD,
-                'is_active' => now()->between($oddStart, $oddEnd),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ];
-
-            $records[] = [
-                'start_date' => $evenStart,
-                'end_date' => $evenEnd,
-                'semester' => SemesterEnums::EVEN,
-                'is_active' => now()->between($evenStart, $evenEnd),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ];
-        }
+        $records = collect($this->academicYears())->map(fn ($val) => [
+            'start_date' => $val['start_date'],
+            'end_date' => $val['end_date'],
+            'semester' => $val['semester'],
+            'is_active' => $now->between(Carbon::parse($val['start_date']), Carbon::parse($val['end_date'])),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ])->toArray();
 
         AcademicYear::insert($records);
+    }
+
+    /**
+     * @return list<array{start_date: string, end_date: string, semester: string}>
+     */
+    private function academicYears(): array
+    {
+        return [
+            ['start_date' => '2026-08-01', 'end_date' => '2027-01-31', 'semester' => SemesterEnums::ODD],
+            ['start_date' => '2027-02-01', 'end_date' => '2027-07-31', 'semester' => SemesterEnums::EVEN],
+        ];
     }
 }
