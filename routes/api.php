@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AcademicYear\AcademicYearController;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Classroom\ClassroomController;
+use App\Http\Controllers\Api\ClassSchedule\ClassScheduleController;
 use App\Http\Controllers\Api\Profile\ProfileController;
 use App\Http\Controllers\Api\Room\RoomController;
 use App\Http\Controllers\Api\Setting\PublicHolidaySettingController;
@@ -60,6 +61,12 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function (): void {
     Route::post('teacher-subjects', [TeacherSubjectController::class, 'store'])->name('teacher-subjects.store');
     Route::delete('teacher-subjects/{teacherSubject}', [TeacherSubjectController::class, 'destroy'])->name('teacher-subjects.destroy');
 
+    Route::get('classrooms/dropdown/selected', [ClassroomController::class, 'selected'])->name('classrooms.dropdown.selected');
+    Route::get('classrooms/dropdown', [ClassroomController::class, 'dropdown'])->name('classrooms.dropdown');
+    Route::get('class-schedules', [ClassScheduleController::class, 'index'])->name('class-schedules.index');
+    Route::post('class-schedules', [ClassScheduleController::class, 'store'])->name('class-schedules.store');
+    Route::put('class-schedules/{classSchedule}', [ClassScheduleController::class, 'update'])->name('class-schedules.update');
+    Route::delete('class-schedules/{classSchedule}', [ClassScheduleController::class, 'destroy'])->name('class-schedules.destroy');
     Route::put('classrooms/{classroom}/homeroom', [ClassroomController::class, 'assignHomeroom'])->name('classrooms.homeroom.assign');
     Route::delete('classrooms/{classroom}/homeroom', [ClassroomController::class, 'removeHomeroom'])->name('classrooms.homeroom.remove');
     Route::get('classrooms/{classroom}/students', [ClassroomController::class, 'students'])->name('classrooms.students.index');

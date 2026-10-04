@@ -5,7 +5,11 @@ namespace App\Services\Classroom;
 use App\Models\AcademicYear;
 use App\Models\Classroom;
 use App\Models\Student;
+use App\Services\DataTable\DataTableBuilder;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -94,6 +98,40 @@ class ClassroomService
     public function removeStudent(Classroom $classroom, Student $student): void
     {
         $classroom->students()->detach($student->id);
+    }
+
+    /**
+     * @return LengthAwarePaginator<int, Classroom>
+     */
+    public function dropdown(Request $request): LengthAwarePaginator
+    {
+        if (! $request->filled('academic_year_id')) {
+            $activeId = AcademicYear::query()->active()->value('id');
+            if ($activeId !== null) {
+                $request->merge(['academic_year_id' => $activeId]);
+            }
+        }
+
+        return DataTableBuilder::make(Classroom::query(), $request)
+            ->searchable(['name'])
+            ->paginateParams(20)
+            ->addFilter('academic_year_id', ['nullable', 'integer', 'exists:academic_years,id'], function (Builder $query, int $value): void {
+                $query->where('academic_year_id', $value);
+            })
+            ->paginate();
+    }
+
+    /**
+     * @param  array<int, int>  $ids
+     * @return Collection<int, Classroom>
+     */
+    public function selected(array $ids): Collection
+    {
+        if ($ids === []) {
+            return new Collection;
+        }
+
+        return Classroom::query()->whereKey($ids)->get();
     }
 
     /**

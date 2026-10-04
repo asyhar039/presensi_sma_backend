@@ -240,19 +240,63 @@ class AcademicYear20262027Seeder extends Seeder
             foreach ($daySchedule['grid'] as $gridItem) {
                 $classroom = $this->classroomsMap->get($gridItem['class']);
 
+                if (! $classroom) {
+                    continue;
+                }
+
+                $blocks = [];
+                $currentBlock = null;
+
                 foreach ($gridItem['subjects'] as $periodIndex => $teacherRef) {
-                    if (empty($teacherRef)) {
-                        continue;
-                    }
-
+                    $teacherRef = trim((string) $teacherRef);
                     $slot = $periodsConfig->get($periodIndex);
+
                     if (! $slot) {
+                        if ($currentBlock !== null) {
+                            $blocks[] = $currentBlock;
+                            $currentBlock = null;
+                        }
+
                         continue;
                     }
 
-                    $teacherRefs = Str::contains($teacherRef, '/')
-                        ? explode('/', $teacherRef)
-                        : [$teacherRef];
+                    if (empty($teacherRef)) {
+                        if ($currentBlock !== null) {
+                            $blocks[] = $currentBlock;
+                            $currentBlock = null;
+                        }
+
+                        continue;
+                    }
+
+                    if ($currentBlock === null) {
+                        $currentBlock = [
+                            'teacher_ref' => $teacherRef,
+                            'start_period' => $periodIndex,
+                            'start_time' => $slot['start'],
+                            'end_time' => $slot['end'],
+                        ];
+                    } elseif ($currentBlock['teacher_ref'] === $teacherRef) {
+                        $currentBlock['end_time'] = $slot['end'];
+                    } else {
+                        $blocks[] = $currentBlock;
+                        $currentBlock = [
+                            'teacher_ref' => $teacherRef,
+                            'start_period' => $periodIndex,
+                            'start_time' => $slot['start'],
+                            'end_time' => $slot['end'],
+                        ];
+                    }
+                }
+
+                if ($currentBlock !== null) {
+                    $blocks[] = $currentBlock;
+                }
+
+                foreach ($blocks as $block) {
+                    $teacherRefs = Str::contains($block['teacher_ref'], '/')
+                        ? explode('/', $block['teacher_ref'])
+                        : [$block['teacher_ref']];
 
                     foreach ($teacherRefs as $ref) {
                         $teacher = $this->teachersMap->get(trim($ref));
@@ -265,9 +309,9 @@ class AcademicYear20262027Seeder extends Seeder
                             'classroom_id' => $classroom->id,
                             'teacher_id' => $teacher->id,
                             'day' => $day,
-                            'period' => $periodIndex,
-                            'start_time' => $slot['start'],
-                            'end_time' => $slot['end'],
+                            'period' => $block['start_period'],
+                            'start_time' => $block['start_time'],
+                            'end_time' => $block['end_time'],
                             'created_at' => $now,
                             'updated_at' => $now,
                         ];

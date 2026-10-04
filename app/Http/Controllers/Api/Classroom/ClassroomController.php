@@ -7,8 +7,10 @@ use App\Http\Requests\Classroom\AssignClassroomStudentsRequest;
 use App\Http\Requests\Classroom\AssignHomeroomRequest;
 use App\Http\Requests\Classroom\StoreClassroomRequest;
 use App\Http\Requests\Classroom\UpdateClassroomRequest;
+use App\Http\Requests\Dropdown\DropdownSelectedRequest;
 use App\Http\Resources\ClassroomListResource;
 use App\Http\Resources\ClassroomResource;
+use App\Http\Resources\Dropdown\ClassroomDropdownResource;
 use App\Http\Resources\StudentResource;
 use App\Models\Classroom;
 use App\Models\Student;
@@ -45,6 +47,40 @@ class ClassroomController extends Controller
             $paginator,
             ClassroomListResource::collection($paginator->items()),
             'Classrooms retrieved successfully.'
+        );
+    }
+
+    /**
+     * Classroom options for dropdowns.
+     */
+    #[Endpoint(title: 'List classrooms dropdown', description: 'Returns paginated {value, label} classroom options. academic_year_id is optional and defaults to the active academic year.')]
+    #[QueryParameter('search', description: 'Search by classroom name.', type: 'string')]
+    #[QueryParameter('page', description: 'Current page number.', type: 'int', default: 1)]
+    #[QueryParameter('per_page', description: 'Items per page (max 50).', type: 'int', default: 20)]
+    #[QueryParameter('academic_year_id', description: 'Filter by academic year. Defaults to the active academic year.', type: 'int')]
+    public function dropdown(Request $request): JsonResponse
+    {
+        $paginator = $this->classroomService->dropdown($request);
+
+        return $this->paginatedResponse(
+            $paginator,
+            ClassroomDropdownResource::collection($paginator->items()),
+            'Classrooms dropdown retrieved successfully.'
+        );
+    }
+
+    /**
+     * Selected options for dropdowns.
+     */
+    #[Endpoint(title: 'List classrooms dropdown selected', description: 'Returns {value, label} options matching the given active_ids, without pagination meta.')]
+    #[QueryParameter('active_ids', description: 'IDs to resolve, e.g. ?active_ids[]=1&active_ids[]=2.', type: 'array')]
+    public function selected(DropdownSelectedRequest $request): JsonResponse
+    {
+        $items = $this->classroomService->selected($request->activeIds());
+
+        return $this->successResponse(
+            ClassroomDropdownResource::collection($items),
+            'Classrooms dropdown selected retrieved successfully.'
         );
     }
 
