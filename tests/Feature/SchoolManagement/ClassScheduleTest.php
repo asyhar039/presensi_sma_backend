@@ -2,7 +2,9 @@
 
 use App\Models\AcademicYear;
 use App\Models\Classroom;
+use App\Models\Subject;
 use App\Models\Teacher;
+use App\Models\TeacherSubject;
 use App\Models\User;
 use App\Services\Setting\ScheduleSettingService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -40,6 +42,10 @@ test('admin can use classroom dropdown defaulting to active year and manage sche
     $classroom = Classroom::factory()->create(['academic_year_id' => $year->id]);
     $otherClassroom = Classroom::factory()->create(['academic_year_id' => $other->id, 'name' => 'Other']);
     $teacher = Teacher::factory()->create();
+    $subject = Subject::factory()->create();
+    TeacherSubject::create(['teacher_id' => $teacher->id, 'subject_id' => $subject->id, 'academic_year_id' => $year->id]);
+    $otherSubject = Subject::factory()->create();
+    TeacherSubject::create(['teacher_id' => $teacher->id, 'subject_id' => $otherSubject->id, 'academic_year_id' => $other->id]);
     $slot = seedMondaySchedule();
 
     $this->withToken($token)->getJson('/classrooms/dropdown')
@@ -66,7 +72,7 @@ test('admin can use classroom dropdown defaulting to active year and manage sche
 
     $list = $this->withToken($token)->getJson("/class-schedules?classroom_id={$classroom->id}&day=monday")
         ->assertOk()->assertJsonCount(1, 'data')->json('data');
-    expect($list[0]['period'])->toBe(0)->and($list[0]['teacher']['id'])->toBe($teacher->id);
+    expect($list[0]['period'])->toBe(0)->and($list[0]['teacher']['id'])->toBe($teacher->id)->and($list[0]['teacher']['subjects'])->toBe([['id' => $subject->id, 'name' => $subject->name]]);
 
     $this->withToken($token)->postJson('/class-schedules', [
         'classroom_id' => $classroom->id, 'day' => 'monday', 'period' => 0,

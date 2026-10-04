@@ -2,6 +2,7 @@
 
 namespace App\Services\ClassSchedule;
 
+use App\Models\Classroom;
 use App\Models\ClassSchedule;
 use App\Services\Setting\ScheduleSettingService;
 use Illuminate\Database\Eloquent\Collection;
@@ -16,8 +17,12 @@ class ClassScheduleService
      */
     public function list(int $classroomId, string $day): Collection
     {
+        $academicYearId = Classroom::query()->whereKey($classroomId)->value('academic_year_id');
+
         return ClassSchedule::query()
-            ->with(['classroom', 'teacher.user'])
+            ->with(['classroom', 'teacher.user', 'teacher.subjects' => fn ($query) => $academicYearId
+                ? $query->where('teacher_subjects.academic_year_id', $academicYearId)->orderBy('name')
+                : $query->orderBy('name')])
             ->where('classroom_id', $classroomId)
             ->where('day', $day)
             ->orderBy('period')

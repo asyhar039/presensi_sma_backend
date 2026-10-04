@@ -29,6 +29,9 @@ class ClassScheduleResource extends JsonResource
                 'id' => $teacher->id,
                 'name' => $teacher->user?->name,
                 'email' => $teacher->user?->email,
+                'subjects' => $teacher->relationLoaded('subjects')
+                    ? $teacher->subjects->map(fn ($subject): array => ['id' => $subject->id, 'name' => $subject->name])->values()->all()
+                    : [],
             ] : null,
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
