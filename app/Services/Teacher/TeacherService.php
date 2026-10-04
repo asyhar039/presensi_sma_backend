@@ -2,9 +2,9 @@
 
 namespace App\Services\Teacher;
 
-use App\Enums\Enums\GenderEnums;
-use App\Enums\Enums\TeacherEmploymentStatusEnums;
+use App\Enums\GenderEnums;
 use App\Enums\RoleEnum;
+use App\Enums\TeacherEmploymentStatusEnums;
 use App\Models\Teacher;
 use App\Models\User;
 use App\Services\DataTable\DataTableBuilder;

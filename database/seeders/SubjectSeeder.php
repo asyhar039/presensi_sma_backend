@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Enums\Enums\SubjectEnums;
+use App\Enums\SubjectEnums;
 use App\Models\Subject;
 use Illuminate\Database\Seeder;
 

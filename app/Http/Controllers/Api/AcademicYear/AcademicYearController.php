@@ -31,7 +31,7 @@ class AcademicYearController extends Controller
     #[QueryParameter('per_page', description: 'Items per page (max 50).', type: 'int', default: 10)]
     #[QueryParameter('semester', description: 'Filter by semester: odd, even.', type: 'string')]
     #[QueryParameter('year', description: 'Filter by year matching the start or end date.', type: 'int')]
-    #[QueryParameter('sortBy', description: 'Sort column: id, start_date, end_date, semester, is_active, created_at.', type: 'string')]
+    #[QueryParameter('sortBy', description: 'Sort column: id, odd_start_date, odd_end_date, even_start_date, even_end_date, semester, is_active, created_at.', type: 'string')]
     #[QueryParameter('order', description: 'Sort direction: asc or desc.', type: 'string')]
     public function index(Request $request): JsonResponse
     {

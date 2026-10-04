@@ -18,9 +18,10 @@ class AcademicYearResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'start_date' => $this->start_date?->toDateString(),
-            'end_date' => $this->end_date?->toDateString(),
-            'semester' => $this->semester instanceof \BackedEnum ? $this->semester->value : $this->semester,
+            'odd_start_date' => $this->odd_start_date?->toDateString(),
+            'odd_end_date' => $this->odd_end_date?->toDateString(),
+            'even_start_date' => $this->even_start_date?->toDateString(),
+            'even_end_date' => $this->even_end_date?->toDateString(),
             'is_active' => (bool) $this->is_active,
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),

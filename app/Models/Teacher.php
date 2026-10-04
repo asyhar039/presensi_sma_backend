@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use App\Enums\Enums\GenderEnums;
-use App\Enums\Enums\TeacherEmploymentStatusEnums;
+use App\Enums\GenderEnums;
+use App\Enums\TeacherEmploymentStatusEnums;
 use Database\Factories\TeacherFactory;
 use Illuminate\Database\Eloquent\Attributes\CollectedBy;
 use Illuminate\Database\Eloquent\Attributes\Fillable;

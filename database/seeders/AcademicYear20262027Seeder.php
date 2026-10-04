@@ -100,6 +100,7 @@ class AcademicYear20262027Seeder extends Seeder
 
         $this->teachersMap = collect($teachersData)->mapWithKeys(function (array $teacher) use ($users, $teacherModels) {
             $userId = $users->get($teacher['email'])->id;
+
             return [$teacher['ref'] => $teacherModels->get($userId)];
         });
     }
@@ -120,7 +121,7 @@ class AcademicYear20262027Seeder extends Seeder
             ]);
         })->all();
 
-        if (!empty($payload)) {
+        if (! empty($payload)) {
             TeacherSubject::insert($payload);
         }
     }
@@ -217,7 +218,7 @@ class AcademicYear20262027Seeder extends Seeder
             });
         })->all();
 
-        if (!empty($payload)) {
+        if (! empty($payload)) {
             DutyTeacher::insert($payload);
         }
     }
@@ -228,7 +229,7 @@ class AcademicYear20262027Seeder extends Seeder
 
         $now = Carbon::now();
         $daysConfig = $service->all();
-        $schedulesPayload = [];;
+        $schedulesPayload = [];
 
         foreach ($schedulesData as $daySchedule) {
             $day = strtolower($daySchedule['day']);
@@ -245,7 +246,7 @@ class AcademicYear20262027Seeder extends Seeder
                     }
 
                     $slot = $periodsConfig->get($periodIndex);
-                    if (!$slot) {
+                    if (! $slot) {
                         continue;
                     }
 
@@ -256,7 +257,7 @@ class AcademicYear20262027Seeder extends Seeder
                     foreach ($teacherRefs as $ref) {
                         $teacher = $this->teachersMap->get(trim($ref));
 
-                        if (!$teacher) {
+                        if (! $teacher) {
                             continue;
                         }
 
@@ -275,7 +276,7 @@ class AcademicYear20262027Seeder extends Seeder
             }
         }
 
-        if (!empty($schedulesPayload)) {
+        if (! empty($schedulesPayload)) {
             ClassSchedule::insert($schedulesPayload);
         }
     }
