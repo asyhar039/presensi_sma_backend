@@ -6,6 +6,7 @@ use App\Models\AcademicYear;
 use App\Services\DataTable\DataTableBuilder;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -46,6 +47,19 @@ class AcademicYearService
             ->searchable(['odd_start_date', 'odd_end_date', 'even_start_date', 'even_end_date'])
             ->paginateParams(20)
             ->paginate();
+    }
+
+    /**
+     * @param  array<int, int>  $ids
+     * @return Collection<int, AcademicYear>
+     */
+    public function selected(array $ids): Collection
+    {
+        if ($ids === []) {
+            return new Collection;
+        }
+
+        return AcademicYear::query()->whereKey($ids)->get();
     }
 
     /**

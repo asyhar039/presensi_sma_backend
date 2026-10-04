@@ -12,6 +12,7 @@ use App\Rules\LooseBoolean;
 use App\Services\DataTable\DataTableBuilder;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -64,6 +65,19 @@ class TeacherService
                 }
             })
             ->paginate();
+    }
+
+    /**
+     * @param  array<int, int>  $ids
+     * @return Collection<int, Teacher>
+     */
+    public function selected(array $ids): Collection
+    {
+        if ($ids === []) {
+            return new Collection;
+        }
+
+        return Teacher::query()->with('user')->whereKey($ids)->get();
     }
 
     /**

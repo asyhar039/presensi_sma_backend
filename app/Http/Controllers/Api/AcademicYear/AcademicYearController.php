@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\AcademicYear;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AcademicYear\StoreAcademicYearRequest;
 use App\Http\Requests\AcademicYear\UpdateAcademicYearRequest;
+use App\Http\Requests\Dropdown\DropdownSelectedRequest;
 use App\Http\Resources\AcademicYearResource;
 use App\Http\Resources\Dropdown\AcademicYearDropdownResource;
 use App\Models\AcademicYear;
@@ -60,6 +61,21 @@ class AcademicYearController extends Controller
             $paginator,
             AcademicYearDropdownResource::collection($paginator->items()),
             'Academic years dropdown retrieved successfully.'
+        );
+    }
+
+    /**
+     * Selected options for dropdowns.
+     */
+    #[Endpoint(title: 'List academic years dropdown selected', description: 'Returns {value, label} options matching the given active_ids, without pagination meta.')]
+    #[QueryParameter('active_ids', description: 'IDs to resolve, e.g. ?active_ids[]=1&active_ids[]=2.', type: 'array')]
+    public function selected(DropdownSelectedRequest $request): JsonResponse
+    {
+        $items = $this->academicYearService->selected($request->activeIds());
+
+        return $this->successResponse(
+            AcademicYearDropdownResource::collection($items),
+            'Academic years dropdown selected retrieved successfully.'
         );
     }
 

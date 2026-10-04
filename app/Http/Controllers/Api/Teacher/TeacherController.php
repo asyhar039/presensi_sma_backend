@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Teacher;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Dropdown\DropdownSelectedRequest;
 use App\Http\Requests\Teacher\ChangeTeacherPasswordRequest;
 use App\Http\Requests\Teacher\StoreTeacherRequest;
 use App\Http\Requests\Teacher\UpdateTeacherRequest;
@@ -63,6 +64,21 @@ class TeacherController extends Controller
             $paginator,
             TeacherDropdownResource::collection($paginator->items()),
             'Teachers dropdown retrieved successfully.'
+        );
+    }
+
+    /**
+     * Selected options for dropdowns.
+     */
+    #[Endpoint(title: 'List teachers dropdown selected', description: 'Returns {value, label} options matching the given active_ids, without pagination meta.')]
+    #[QueryParameter('active_ids', description: 'IDs to resolve, e.g. ?active_ids[]=1&active_ids[]=2.', type: 'array')]
+    public function selected(DropdownSelectedRequest $request): JsonResponse
+    {
+        $items = $this->teacherService->selected($request->activeIds());
+
+        return $this->successResponse(
+            TeacherDropdownResource::collection($items),
+            'Teachers dropdown selected retrieved successfully.'
         );
     }
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Student;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Dropdown\DropdownSelectedRequest;
 use App\Http\Requests\Student\ChangeStudentPasswordRequest;
 use App\Http\Requests\Student\StoreStudentRequest;
 use App\Http\Requests\Student\UpdateStudentRequest;
@@ -63,6 +64,21 @@ class StudentController extends Controller
             $paginator,
             StudentDropdownResource::collection($paginator->items()),
             'Students dropdown retrieved successfully.'
+        );
+    }
+
+    /**
+     * Selected options for dropdowns.
+     */
+    #[Endpoint(title: 'List students dropdown selected', description: 'Returns {value, label} options matching the given active_ids, without pagination meta.')]
+    #[QueryParameter('active_ids', description: 'IDs to resolve, e.g. ?active_ids[]=1&active_ids[]=2.', type: 'array')]
+    public function selected(DropdownSelectedRequest $request): JsonResponse
+    {
+        $items = $this->studentService->selected($request->activeIds());
+
+        return $this->successResponse(
+            StudentDropdownResource::collection($items),
+            'Students dropdown selected retrieved successfully.'
         );
     }
 

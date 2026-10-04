@@ -8,9 +8,11 @@ use App\Enums\StudentStatusEnums;
 use App\Models\AcademicYear;
 use App\Models\Student;
 use App\Models\User;
+use App\Rules\LooseBoolean;
 use App\Services\DataTable\DataTableBuilder;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -57,12 +59,25 @@ class StudentService
             ->with('user')
             ->searchable(['user.name'])
             ->paginateParams(20)
-            ->addFilter('hide_has_classroom', ['nullable', 'boolean'], function (Builder $query, mixed $value) use ($activeYearId): void {
+            ->addFilter('hide_has_classroom', ['nullable', new LooseBoolean], function (Builder $query, mixed $value) use ($activeYearId): void {
                 if (filter_var($value, FILTER_VALIDATE_BOOLEAN) && $activeYearId !== null) {
                     $query->whereDoesntHave('classrooms', fn (Builder $q) => $q->where('academic_year_id', $activeYearId));
                 }
             })
             ->paginate();
+    }
+
+    /**
+     * @param  array<int, int>  $ids
+     * @return Collection<int, Student>
+     */
+    public function selected(array $ids): Collection
+    {
+        if ($ids === []) {
+            return new Collection;
+        }
+
+        return Student::query()->with('user')->whereKey($ids)->get();
     }
 
     /**
