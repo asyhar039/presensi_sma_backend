@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AcademicYear\AcademicYearController;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Classroom\ClassroomController;
 use App\Http\Controllers\Api\ClassSchedule\ClassScheduleController;
+use App\Http\Controllers\Api\Homeroom\HomeroomController;
 use App\Http\Controllers\Api\Profile\ProfileController;
 use App\Http\Controllers\Api\Room\RoomController;
 use App\Http\Controllers\Api\Setting\PublicHolidaySettingController;
@@ -90,4 +91,9 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function (): void {
         Route::put('school-zones/{schoolZone}', [SchoolZoneSettingController::class, 'update'])->name('school-zones.update');
         Route::patch('school-zones/{schoolZone}/active', [SchoolZoneSettingController::class, 'updateActive'])->name('school-zones.active');
     });
+});
+
+Route::middleware(['auth:sanctum', 'role:teacher'])->prefix('homeroom')->name('homeroom.')->group(function (): void {
+    Route::get('/', [HomeroomController::class, 'show'])->name('show');
+    Route::get('/students', [HomeroomController::class, 'students'])->name('students.index');
 });
