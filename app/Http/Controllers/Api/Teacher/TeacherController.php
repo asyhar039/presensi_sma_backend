@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Teacher\ChangeTeacherPasswordRequest;
 use App\Http\Requests\Teacher\StoreTeacherRequest;
 use App\Http\Requests\Teacher\UpdateTeacherRequest;
+use App\Http\Resources\Dropdown\TeacherDropdownResource;
 use App\Http\Resources\TeacherResource;
 use App\Models\Teacher;
 use App\Services\Teacher\TeacherService;
@@ -43,6 +44,25 @@ class TeacherController extends Controller
             $paginator,
             TeacherResource::collection($paginator->items()),
             'Teachers retrieved successfully.'
+        );
+    }
+
+    /**
+     * Teacher options for dropdowns.
+     */
+    #[Endpoint(title: 'List teachers dropdown', description: 'Returns paginated {value, label, email} teacher options. hide_has_homeroom excludes teachers already homeroom of a classroom in the active academic year.')]
+    #[QueryParameter('search', description: 'Search by teacher name.', type: 'string')]
+    #[QueryParameter('page', description: 'Current page number.', type: 'int', default: 1)]
+    #[QueryParameter('per_page', description: 'Items per page (max 50).', type: 'int', default: 20)]
+    #[QueryParameter('hide_has_homeroom', description: 'Hide teachers already assigned as homeroom in the active academic year.', type: 'bool')]
+    public function dropdown(Request $request): JsonResponse
+    {
+        $paginator = $this->teacherService->dropdown($request);
+
+        return $this->paginatedResponse(
+            $paginator,
+            TeacherDropdownResource::collection($paginator->items()),
+            'Teachers dropdown retrieved successfully.'
         );
     }
 

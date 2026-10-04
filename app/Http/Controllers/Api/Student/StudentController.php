@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Student\ChangeStudentPasswordRequest;
 use App\Http\Requests\Student\StoreStudentRequest;
 use App\Http\Requests\Student\UpdateStudentRequest;
+use App\Http\Resources\Dropdown\StudentDropdownResource;
 use App\Http\Resources\StudentResource;
 use App\Models\Student;
 use App\Services\Student\StudentService;
@@ -43,6 +44,25 @@ class StudentController extends Controller
             $paginator,
             StudentResource::collection($paginator->items()),
             'Students retrieved successfully.'
+        );
+    }
+
+    /**
+     * Student options for dropdowns.
+     */
+    #[Endpoint(title: 'List students dropdown', description: 'Returns paginated {value, label, email} student options. hide_has_classroom excludes students already in a classroom in the active academic year.')]
+    #[QueryParameter('search', description: 'Search by student name.', type: 'string')]
+    #[QueryParameter('page', description: 'Current page number.', type: 'int', default: 1)]
+    #[QueryParameter('per_page', description: 'Items per page (max 50).', type: 'int', default: 20)]
+    #[QueryParameter('hide_has_classroom', description: 'Hide students already assigned to a classroom in the active academic year.', type: 'bool')]
+    public function dropdown(Request $request): JsonResponse
+    {
+        $paginator = $this->studentService->dropdown($request);
+
+        return $this->paginatedResponse(
+            $paginator,
+            StudentDropdownResource::collection($paginator->items()),
+            'Students dropdown retrieved successfully.'
         );
     }
 

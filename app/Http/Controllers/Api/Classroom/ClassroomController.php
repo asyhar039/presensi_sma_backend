@@ -7,6 +7,7 @@ use App\Http\Requests\Classroom\AssignClassroomStudentsRequest;
 use App\Http\Requests\Classroom\AssignHomeroomRequest;
 use App\Http\Requests\Classroom\StoreClassroomRequest;
 use App\Http\Requests\Classroom\UpdateClassroomRequest;
+use App\Http\Resources\ClassroomListResource;
 use App\Http\Resources\ClassroomResource;
 use App\Http\Resources\StudentResource;
 use App\Models\Classroom;
@@ -40,11 +41,10 @@ class ClassroomController extends Controller
             $request->integer('academic_year_id') ?: null
         );
 
-        return $this->successResponse(
-            data: ClassroomResource::collection($paginator->items()),
-            message: 'Classrooms retrieved successfully.',
-            code: Response::HTTP_OK,
-            meta: $this->paginationMeta($paginator)
+        return $this->paginatedResponse(
+            $paginator,
+            ClassroomListResource::collection($paginator->items()),
+            'Classrooms retrieved successfully.'
         );
     }
 
@@ -54,10 +54,9 @@ class ClassroomController extends Controller
     #[Endpoint(title: 'Create classroom', description: 'Creates a classroom. academic_year_id is optional and falls back to the active academic year.')]
     public function store(StoreClassroomRequest $request): JsonResponse
     {
-        $classroom = $this->classroomService->create($request->validated());
+        $this->classroomService->create($request->validated());
 
         return $this->successResponse(
-            data: ClassroomResource::make($classroom),
             message: 'Classroom created successfully.',
             code: Response::HTTP_CREATED
         );
@@ -69,7 +68,7 @@ class ClassroomController extends Controller
     #[Endpoint(title: 'Show classroom', description: 'Returns a single classroom with academic year, homeroom teacher and students.')]
     public function show(Classroom $classroom): JsonResponse
     {
-        $classroom->load(['academicYear', 'homeroomTeacher.user', 'students.user']);
+        $classroom->load(['academicYear', 'homeroomTeacher.user'])->loadCount('students');
 
         return $this->successResponse(
             data: ClassroomResource::make($classroom),
@@ -83,12 +82,9 @@ class ClassroomController extends Controller
     #[Endpoint(title: 'Update classroom', description: 'Updates classroom name, academic year or homeroom teacher.')]
     public function update(UpdateClassroomRequest $request, Classroom $classroom): JsonResponse
     {
-        $classroom = $this->classroomService->update($classroom, $request->validated());
+        $this->classroomService->update($classroom, $request->validated());
 
-        return $this->successResponse(
-            data: ClassroomResource::make($classroom),
-            message: 'Classroom updated successfully.'
-        );
+        return $this->successResponse(message: 'Classroom updated successfully.');
     }
 
     /**
@@ -108,12 +104,9 @@ class ClassroomController extends Controller
     #[Endpoint(title: 'Assign homeroom teacher', description: 'Assigns a teacher as homeroom teacher. A teacher can only be homeroom of one classroom per academic year. Pass null to unassign.')]
     public function assignHomeroom(AssignHomeroomRequest $request, Classroom $classroom): JsonResponse
     {
-        $classroom = $this->classroomService->assignHomeroom($classroom, $request->validated()['homeroom_teacher_id'] ?? null);
+        $this->classroomService->assignHomeroom($classroom, $request->validated()['homeroom_teacher_id'] ?? null);
 
-        return $this->successResponse(
-            data: ClassroomResource::make($classroom),
-            message: 'Homeroom teacher assigned successfully.'
-        );
+        return $this->successResponse(message: 'Homeroom teacher assigned successfully.');
     }
 
     /**
@@ -122,12 +115,9 @@ class ClassroomController extends Controller
     #[Endpoint(title: 'Remove homeroom teacher', description: 'Unassigns the homeroom teacher from the classroom.')]
     public function removeHomeroom(Classroom $classroom): JsonResponse
     {
-        $classroom = $this->classroomService->assignHomeroom($classroom, null);
+        $this->classroomService->assignHomeroom($classroom, null);
 
-        return $this->successResponse(
-            data: ClassroomResource::make($classroom),
-            message: 'Homeroom teacher removed successfully.'
-        );
+        return $this->successResponse(message: 'Homeroom teacher removed successfully.');
     }
 
     /**
@@ -154,12 +144,9 @@ class ClassroomController extends Controller
     #[Endpoint(title: 'Assign students to classroom', description: 'Syncs the given student ids into the classroom. Existing memberships not listed are removed.')]
     public function syncStudents(AssignClassroomStudentsRequest $request, Classroom $classroom): JsonResponse
     {
-        $classroom = $this->classroomService->syncStudents($classroom, $request->validated()['student_ids']);
+        $this->classroomService->syncStudents($classroom, $request->validated()['student_ids']);
 
-        return $this->successResponse(
-            data: ClassroomResource::make($classroom),
-            message: 'Students assigned to classroom successfully.'
-        );
+        return $this->successResponse(message: 'Students assigned to classroom successfully.');
     }
 
     /**

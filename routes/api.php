@@ -40,14 +40,17 @@ Route::prefix('auth')->name('auth.')->group(function (): void {
 });
 
 Route::middleware(['auth:sanctum', 'role:admin'])->group(function (): void {
+    Route::get('academic-years/dropdown', [AcademicYearController::class, 'dropdown'])->name('academic-years.dropdown');
     Route::apiResource('academic-years', AcademicYearController::class);
     Route::apiResource('rooms', RoomController::class);
     Route::apiResource('subjects', SubjectController::class);
 
     Route::put('students/{student}/password', [StudentController::class, 'changePassword'])->name('students.password');
+    Route::get('students/dropdown', [StudentController::class, 'dropdown'])->name('students.dropdown');
     Route::apiResource('students', StudentController::class);
 
     Route::put('teachers/{teacher}/password', [TeacherController::class, 'changePassword'])->name('teachers.password');
+    Route::get('teachers/dropdown', [TeacherController::class, 'dropdown'])->name('teachers.dropdown');
     Route::apiResource('teachers', TeacherController::class);
 
     Route::get('teacher-subjects', [TeacherSubjectController::class, 'index'])->name('teacher-subjects.index');

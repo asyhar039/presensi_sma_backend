@@ -5,6 +5,7 @@ namespace App\Services\Student;
 use App\Enums\GenderEnums;
 use App\Enums\RoleEnum;
 use App\Enums\StudentStatusEnums;
+use App\Models\AcademicYear;
 use App\Models\Student;
 use App\Models\User;
 use App\Services\DataTable\DataTableBuilder;
@@ -40,6 +41,26 @@ class StudentService
             })
             ->addFilter('gender', ['nullable', 'string', 'in:'.$genders], function (Builder $query, string $value): void {
                 $query->where('gender', $value);
+            })
+            ->paginate();
+    }
+
+    /**
+     * @return LengthAwarePaginator<int, Student>
+     */
+    public function dropdown(Request $request): LengthAwarePaginator
+    {
+        // ponytail: single active-year exclusion; add academic_year_id param when multi-year filtering is needed.
+        $activeYearId = AcademicYear::query()->active()->value('id');
+
+        return DataTableBuilder::make(Student::query(), $request)
+            ->with('user')
+            ->searchable(['user.name'])
+            ->paginateParams(20)
+            ->addFilter('hide_has_classroom', ['nullable', 'boolean'], function (Builder $query, mixed $value) use ($activeYearId): void {
+                if (filter_var($value, FILTER_VALIDATE_BOOLEAN) && $activeYearId !== null) {
+                    $query->whereDoesntHave('classrooms', fn (Builder $q) => $q->where('academic_year_id', $activeYearId));
+                }
             })
             ->paginate();
     }

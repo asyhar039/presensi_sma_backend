@@ -5,8 +5,10 @@ namespace App\Services\Teacher;
 use App\Enums\GenderEnums;
 use App\Enums\RoleEnum;
 use App\Enums\TeacherEmploymentStatusEnums;
+use App\Models\AcademicYear;
 use App\Models\Teacher;
 use App\Models\User;
+use App\Rules\LooseBoolean;
 use App\Services\DataTable\DataTableBuilder;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -40,6 +42,26 @@ class TeacherService
             })
             ->addFilter('gender', ['nullable', 'string', 'in:'.$genders], function (Builder $query, string $value): void {
                 $query->where('gender', $value);
+            })
+            ->paginate();
+    }
+
+    /**
+     * @return LengthAwarePaginator<int, Teacher>
+     */
+    public function dropdown(Request $request): LengthAwarePaginator
+    {
+        // ponytail: single active-year exclusion; add academic_year_id param when multi-year filtering is needed.
+        $activeYearId = AcademicYear::query()->active()->value('id');
+
+        return DataTableBuilder::make(Teacher::query(), $request)
+            ->with('user')
+            ->searchable(['user.name'])
+            ->paginateParams(20)
+            ->addFilter('hide_has_homeroom', ['nullable', new LooseBoolean], function (Builder $query, mixed $value) use ($activeYearId): void {
+                if (filter_var($value, FILTER_VALIDATE_BOOLEAN) && $activeYearId !== null) {
+                    $query->whereDoesntHave('homeroomClassrooms', fn (Builder $q) => $q->where('academic_year_id', $activeYearId));
+                }
             })
             ->paginate();
     }

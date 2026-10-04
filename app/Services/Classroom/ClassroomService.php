@@ -27,9 +27,9 @@ class ClassroomService
     /**
      * @param  array<string, mixed>  $data
      */
-    public function create(array $data): Classroom
+    public function create(array $data): void
     {
-        return DB::transaction(function () use ($data): Classroom {
+        DB::transaction(function () use ($data) {
             $academicYearId = $this->resolveAcademicYearId($data['academic_year_id'] ?? null);
             $homeroomTeacherId = $data['homeroom_teacher_id'] ?? null;
 
@@ -37,22 +37,20 @@ class ClassroomService
                 $this->ensureHomeroomAvailable($homeroomTeacherId, $academicYearId);
             }
 
-            $classroom = Classroom::query()->create([
+            Classroom::query()->create([
                 'name' => $data['name'],
                 'academic_year_id' => $academicYearId,
                 'homeroom_teacher_id' => $homeroomTeacherId,
             ]);
-
-            return $classroom->load(['academicYear', 'homeroomTeacher.user']);
         });
     }
 
     /**
      * @param  array<string, mixed>  $data
      */
-    public function update(Classroom $classroom, array $data): Classroom
+    public function update(Classroom $classroom, array $data): void
     {
-        return DB::transaction(function () use ($classroom, $data): Classroom {
+        DB::transaction(function () use ($classroom, $data) {
             $academicYearId = $data['academic_year_id'] ?? $classroom->academic_year_id;
 
             if (array_key_exists('homeroom_teacher_id', $data) && $data['homeroom_teacher_id'] !== null) {
@@ -61,8 +59,6 @@ class ClassroomService
 
             $classroom->fill($data);
             $classroom->save();
-
-            return $classroom->load(['academicYear', 'homeroomTeacher.user']);
         });
     }
 
@@ -71,17 +67,15 @@ class ClassroomService
         $classroom->delete();
     }
 
-    public function assignHomeroom(Classroom $classroom, ?int $teacherId): Classroom
+    public function assignHomeroom(Classroom $classroom, ?int $teacherId): void
     {
-        return DB::transaction(function () use ($classroom, $teacherId): Classroom {
+        DB::transaction(function () use ($classroom, $teacherId) {
             if ($teacherId !== null) {
                 $this->ensureHomeroomAvailable($teacherId, $classroom->academic_year_id, $classroom->id);
             }
 
             $classroom->homeroom_teacher_id = $teacherId;
             $classroom->save();
-
-            return $classroom->load(['academicYear', 'homeroomTeacher.user']);
         });
     }
 

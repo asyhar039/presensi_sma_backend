@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\AcademicYear\StoreAcademicYearRequest;
 use App\Http\Requests\AcademicYear\UpdateAcademicYearRequest;
 use App\Http\Resources\AcademicYearResource;
+use App\Http\Resources\Dropdown\AcademicYearDropdownResource;
 use App\Models\AcademicYear;
 use App\Services\AcademicYear\AcademicYearService;
 use App\Traits\ApiResponseTrait;
@@ -41,6 +42,24 @@ class AcademicYearController extends Controller
             $paginator,
             AcademicYearResource::collection($paginator->items()),
             'Academic years retrieved successfully.'
+        );
+    }
+
+    /**
+     * Academic year options for dropdowns.
+     */
+    #[Endpoint(title: 'List academic years dropdown', description: 'Returns paginated {value, label} academic year options; label is the year range e.g. 2025/2026.')]
+    #[QueryParameter('search', description: 'Search by year, e.g. 2025.', type: 'string')]
+    #[QueryParameter('page', description: 'Current page number.', type: 'int', default: 1)]
+    #[QueryParameter('per_page', description: 'Items per page (max 50).', type: 'int', default: 20)]
+    public function dropdown(Request $request): JsonResponse
+    {
+        $paginator = $this->academicYearService->dropdown($request);
+
+        return $this->paginatedResponse(
+            $paginator,
+            AcademicYearDropdownResource::collection($paginator->items()),
+            'Academic years dropdown retrieved successfully.'
         );
     }
 

@@ -38,6 +38,17 @@ class AcademicYearService
     }
 
     /**
+     * @return LengthAwarePaginator<int, AcademicYear>
+     */
+    public function dropdown(Request $request): LengthAwarePaginator
+    {
+        return DataTableBuilder::make(AcademicYear::query(), $request)
+            ->searchable(['odd_start_date', 'odd_end_date', 'even_start_date', 'even_end_date'])
+            ->paginateParams(20)
+            ->paginate();
+    }
+
+    /**
      * @param  array{odd_start_date: string, odd_end_date: string, even_start_date: string, even_end_date: string, is_active?: bool}  $data
      */
     public function create(array $data): AcademicYear

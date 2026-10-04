@@ -48,6 +48,14 @@ class AcademicYear extends Model
         return $query->where('is_active', true);
     }
 
+    public function label(): string
+    {
+        $start = (int) $this->odd_start_date->format('Y');
+        $end = $this->even_end_date ? (int) $this->even_end_date->format('Y') : $start + 1;
+
+        return "{$start}/{$end}";
+    }
+
     /**
      * @return HasMany<Classroom, $this>
      */
