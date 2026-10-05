@@ -38,6 +38,13 @@ class LeaveRequestResource extends JsonResource
             'late_reason' => $this->late_reason,
             'notes' => $this->notes,
             'attachment' => $this->attachment,
+            'current_step' => $this->current_step,
+            'approvals' => $this->whenLoaded('approvals', fn () => $this->approvals->map(fn ($a): array => [
+                'step' => $a->step,
+                'decision' => $a->decision,
+                'decided_at' => $a->decided_at?->toISOString(),
+                'notes' => $a->notes,
+            ])->all()),
             'requested_at' => $this->requested_at?->toISOString(),
         ];
     }

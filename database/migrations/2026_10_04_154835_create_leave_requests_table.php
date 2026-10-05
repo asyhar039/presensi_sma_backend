@@ -15,6 +15,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->enum('type', LeaveRequestTypeEnum::values());
             $table->enum('status', LeaveRequestStatusEnum::values())->default(LeaveRequestStatusEnum::Pending->value);
+            $table->string('current_step', 32)->nullable();
             $table->string('key', 16)->unique();
 
             $table->date('start_date')->nullable();
@@ -45,10 +46,25 @@ return new class extends Migration
 
             $table->index(['user_id', 'type', 'date']);
         });
+
+        Schema::create('leave_request_approvals', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('leave_request_id')->constrained('leave_requests')->cascadeOnDelete();
+            $table->string('step', 32);
+            $table->enum('decision', ['pending', 'approved', 'rejected'])->default('pending');
+            $table->foreignId('decided_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->timestamp('decided_at')->nullable();
+            $table->string('notes', 255)->nullable();
+            $table->timestamps();
+
+            $table->unique(['leave_request_id', 'step']);
+            $table->index(['leave_request_id', 'decision']);
+        });
     }
 
     public function down(): void
     {
+        Schema::dropIfExists('leave_request_approvals');
         Schema::dropIfExists('leave_requests');
     }
 };

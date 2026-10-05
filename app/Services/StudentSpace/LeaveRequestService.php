@@ -3,8 +3,10 @@
 namespace App\Services\StudentSpace;
 
 use App\Enums\LeaveRequestStatusEnum;
+use App\Enums\LeaveRequestStepEnum;
 use App\Enums\LeaveRequestTypeEnum;
 use App\Models\LeaveRequest;
+use App\Models\LeaveRequestApproval;
 use App\Models\User;
 use App\Services\DataTable\DataTableBuilder;
 use Carbon\Carbon;
@@ -12,6 +14,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class LeaveRequestService
@@ -77,9 +80,7 @@ class LeaveRequestService
             throw ValidationException::withMessages(['start_date' => 'No school days found in the selected range.']);
         }
 
-        return LeaveRequest::query()->create([
-            'user_id' => $user->id,
-            'type' => LeaveRequestTypeEnum::SickLeave,
+        return $this->createWithPipeline($user, LeaveRequestTypeEnum::SickLeave, [
             'status' => LeaveRequestStatusEnum::Pending,
             'start_date' => $start->toDateString(),
             'end_date' => $end->toDateString(),
@@ -97,9 +98,7 @@ class LeaveRequestService
         $this->assertSchoolDay(today());
         $this->assertNoDuplicate($user, LeaveRequestTypeEnum::EarlyOut);
 
-        return LeaveRequest::query()->create([
-            'user_id' => $user->id,
-            'type' => LeaveRequestTypeEnum::EarlyOut,
+        return $this->createWithPipeline($user, LeaveRequestTypeEnum::EarlyOut, [
             'status' => LeaveRequestStatusEnum::Pending,
             'date' => Carbon::today()->toDateString(),
             'time_out' => $data['time_out'],
@@ -120,9 +119,7 @@ class LeaveRequestService
         $this->assertSchoolDay(today());
         $this->assertNoDuplicate($user, LeaveRequestTypeEnum::LateArrival);
 
-        return LeaveRequest::query()->create([
-            'user_id' => $user->id,
-            'type' => LeaveRequestTypeEnum::LateArrival,
+        return $this->createWithPipeline($user, LeaveRequestTypeEnum::LateArrival, [
             'status' => LeaveRequestStatusEnum::Pending,
             'date' => Carbon::today()->toDateString(),
             'estimated_arrival_time' => $data['estimated_arrival_time'],
@@ -144,6 +141,30 @@ class LeaveRequestService
         if ($this->hasTodayRequest($user, $type)) {
             throw ValidationException::withMessages(['date' => 'You have already submitted this request today.']);
         }
+    }
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     */
+    private function createWithPipeline(User $user, LeaveRequestTypeEnum $type, array $attributes): LeaveRequest
+    {
+        return DB::transaction(function () use ($user, $type, $attributes): LeaveRequest {
+            $leave = LeaveRequest::query()->create(['user_id' => $user->id, 'type' => $type, ...$attributes]);
+
+            $steps = LeaveRequestStepEnum::pipelineFor($type);
+
+            foreach ($steps as $step) {
+                LeaveRequestApproval::query()->create([
+                    'leave_request_id' => $leave->id,
+                    'step' => $step->value,
+                    'decision' => 'pending',
+                ]);
+            }
+
+            $leave->fill(['current_step' => $steps[0]->value])->save();
+
+            return $leave->load('approvals');
+        });
     }
 
     private function storeAttachment(?UploadedFile $file): ?string

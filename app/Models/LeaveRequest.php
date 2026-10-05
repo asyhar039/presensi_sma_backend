@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
 /**
@@ -27,7 +28,7 @@ use Illuminate\Support\Str;
     'date', 'time_out', 'time_in', 'exit_reason', 'destination', 'contact_person',
     'estimated_arrival_time', 'late_reason',
     'notes', 'attachment', 'requested_at',
-    'approved_at', 'approved_by', 'rejected_at', 'rejected_by', 'rejected_notes',
+    'approved_at', 'approved_by', 'rejected_at', 'rejected_by', 'rejected_notes', 'current_step',
 ])]
 #[CollectedBy(Collection::class)]
 class LeaveRequest extends Model
@@ -69,6 +70,14 @@ class LeaveRequest extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * @return HasMany<LeaveRequestApproval, $this>
+     */
+    public function approvals(): HasMany
+    {
+        return $this->hasMany(LeaveRequestApproval::class)->orderBy('id');
     }
 
     /**

@@ -14,6 +14,9 @@ use App\Http\Controllers\Api\Student\StudentController;
 use App\Http\Controllers\Api\StudentSpace\StudentSpaceController;
 use App\Http\Controllers\Api\Subject\SubjectController;
 use App\Http\Controllers\Api\Teacher\TeacherController;
+use App\Http\Controllers\Api\TeacherSpace\DutyLeaveController;
+use App\Http\Controllers\Api\TeacherSpace\HomeroomLeaveController;
+use App\Http\Controllers\Api\TeacherSpace\SubjectLeaveController;
 use App\Http\Controllers\Api\TeacherSubject\TeacherSubjectController;
 use Illuminate\Support\Facades\Route;
 
@@ -107,4 +110,21 @@ Route::middleware(['auth:sanctum', 'role:student'])->prefix('student')->name('st
 Route::middleware(['auth:sanctum', 'role:teacher'])->prefix('homeroom')->name('homeroom.')->group(function (): void {
     Route::get('/', [HomeroomController::class, 'show'])->name('show');
     Route::get('/students', [HomeroomController::class, 'students'])->name('students.index');
+    Route::get('/leave-requests', [HomeroomLeaveController::class, 'index'])->name('leave-requests.index');
+    Route::get('/leave-requests/{leaveRequest}', [HomeroomLeaveController::class, 'show'])->name('leave-requests.show');
+    Route::post('/leave-requests/{leaveRequest}/decision', [HomeroomLeaveController::class, 'decide'])->name('leave-requests.decide');
+});
+
+Route::middleware(['auth:sanctum', 'role:teacher'])->prefix('duty')->name('duty.')->group(function (): void {
+    Route::get('/status', [DutyLeaveController::class, 'status'])->name('status');
+    Route::get('/leave-requests', [DutyLeaveController::class, 'index'])->name('leave-requests.index');
+    Route::get('/leave-requests/{leaveRequest}', [DutyLeaveController::class, 'show'])->name('leave-requests.show');
+    Route::post('/leave-requests/{leaveRequest}/late-arrival/decision', [DutyLeaveController::class, 'decideLateArrival'])->name('leave-requests.late-arrival.decide');
+    Route::post('/leave-requests/{leaveRequest}/early-out/decision', [DutyLeaveController::class, 'decideEarlyOut'])->name('leave-requests.early-out.decide');
+});
+
+Route::middleware(['auth:sanctum', 'role:teacher'])->prefix('subject')->name('subject.')->group(function (): void {
+    Route::get('/leave-requests', [SubjectLeaveController::class, 'index'])->name('leave-requests.index');
+    Route::get('/leave-requests/{leaveRequest}', [SubjectLeaveController::class, 'show'])->name('leave-requests.show');
+    Route::post('/leave-requests/{leaveRequest}/early-out/decision', [SubjectLeaveController::class, 'decide'])->name('leave-requests.early-out.decide');
 });

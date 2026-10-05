@@ -108,7 +108,7 @@ class StudentSpaceController extends Controller
     #[Endpoint(title: 'Get leave request detail', description: 'Returns one leave request owned by the authenticated student.')]
     public function show(Request $request, int $leaveRequest): JsonResponse
     {
-        $leave = $this->leaves->findOwned($request->user(), $leaveRequest);
+        $leave = $this->leaves->findOwned($request->user(), $leaveRequest)->loadMissing('approvals');
 
         return $this->successResponse(
             data: LeaveRequestResource::make($leave),
