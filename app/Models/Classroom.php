@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\StudentSpace\StudentSpaceCache;
 use Database\Factories\ClassroomFactory;
 use Illuminate\Database\Eloquent\Attributes\CollectedBy;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -24,6 +25,15 @@ class Classroom extends Model
 {
     /** @use HasFactory<ClassroomFactory> */
     use HasFactory;
+
+    protected static function booted(): void
+    {
+        $flush = function (Classroom $classroom): void {
+            StudentSpaceCache::forgetClassTimes((int) $classroom->getKey());
+        };
+        static::saved($flush);
+        static::deleted($flush);
+    }
 
     /**
      * @return BelongsTo<AcademicYear, $this>

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\StudentSpace\StudentSpaceCache;
 use Database\Factories\AcademicYearFactory;
 use Illuminate\Database\Eloquent\Attributes\CollectedBy;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -26,6 +27,15 @@ class AcademicYear extends Model
 {
     /** @use HasFactory<AcademicYearFactory> */
     use HasFactory;
+
+    protected static function booted(): void
+    {
+        $flush = fn (): callable => function (): void {
+            StudentSpaceCache::forgetActiveYear();
+        };
+        static::saved($flush());
+        static::deleted($flush());
+    }
 
     protected function casts(): array
     {

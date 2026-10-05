@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\DayEnum;
+use App\Services\StudentSpace\StudentSpaceCache;
 use Illuminate\Database\Eloquent\Attributes\CollectedBy;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Collection;
@@ -13,6 +14,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[CollectedBy(Collection::class)]
 class ClassSchedule extends Model
 {
+    protected static function booted(): void
+    {
+        $flush = function (ClassSchedule $schedule): void {
+            StudentSpaceCache::forgetClassTimes((int) $schedule->classroom_id);
+        };
+        static::saved($flush);
+        static::deleted($flush);
+    }
+
     protected function casts(): array
     {
         return ['day' => DayEnum::class, 'period' => 'integer'];

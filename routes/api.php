@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\Setting\PublicHolidaySettingController;
 use App\Http\Controllers\Api\Setting\ScheduleSettingController;
 use App\Http\Controllers\Api\Setting\SchoolZoneSettingController;
 use App\Http\Controllers\Api\Student\StudentController;
+use App\Http\Controllers\Api\StudentSpace\StudentSpaceController;
 use App\Http\Controllers\Api\Subject\SubjectController;
 use App\Http\Controllers\Api\Teacher\TeacherController;
 use App\Http\Controllers\Api\TeacherSubject\TeacherSubjectController;
@@ -91,6 +92,16 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function (): void {
         Route::put('school-zones/{schoolZone}', [SchoolZoneSettingController::class, 'update'])->name('school-zones.update');
         Route::patch('school-zones/{schoolZone}/active', [SchoolZoneSettingController::class, 'updateActive'])->name('school-zones.active');
     });
+});
+
+Route::middleware(['auth:sanctum', 'role:student'])->prefix('student')->name('student.')->group(function (): void {
+    Route::get('/information', [StudentSpaceController::class, 'information'])->name('information');
+    Route::get('/presence', [StudentSpaceController::class, 'presence'])->name('presence');
+    Route::get('/leave-requests', [StudentSpaceController::class, 'index'])->name('leave-requests.index');
+    Route::get('/leave-requests/{leaveRequest}', [StudentSpaceController::class, 'show'])->name('leave-requests.show');
+    Route::post('/leave-requests/sick-leave', [StudentSpaceController::class, 'storeSickLeave'])->name('leave-requests.sick-leave');
+    Route::post('/leave-requests/early-out', [StudentSpaceController::class, 'storeEarlyOut'])->name('leave-requests.early-out');
+    Route::post('/leave-requests/late-arrival', [StudentSpaceController::class, 'storeLateArrival'])->name('leave-requests.late-arrival');
 });
 
 Route::middleware(['auth:sanctum', 'role:teacher'])->prefix('homeroom')->name('homeroom.')->group(function (): void {
