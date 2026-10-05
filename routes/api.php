@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\Teacher\TeacherController;
 use App\Http\Controllers\Api\TeacherSpace\DutyLeaveController;
 use App\Http\Controllers\Api\TeacherSpace\HomeroomLeaveController;
 use App\Http\Controllers\Api\TeacherSpace\SubjectLeaveController;
+use App\Http\Controllers\Api\TeacherSpace\TeacherScheduleController;
 use App\Http\Controllers\Api\TeacherSubject\TeacherSubjectController;
 use Illuminate\Support\Facades\Route;
 
@@ -97,6 +98,13 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function (): void {
     });
 });
 
+Route::middleware(['auth:sanctum', 'role:admin,teacher'])->group(function (): void {
+    Route::prefix('settings')->name('settings.')->group(function (): void {
+        Route::get('schedules', [ScheduleSettingController::class, 'index'])->name('schedules.index');
+        Route::get('schedules/{day}', [ScheduleSettingController::class, 'show'])->name('schedules.show');
+    });
+});
+
 Route::middleware(['auth:sanctum', 'role:student'])->prefix('student')->name('student.')->group(function (): void {
     Route::get('/information', [StudentSpaceController::class, 'information'])->name('information');
     Route::get('/presence', [StudentSpaceController::class, 'presence'])->name('presence');
@@ -125,6 +133,7 @@ Route::middleware(['auth:sanctum', 'role:teacher'])->prefix('duty')->name('duty.
 });
 
 Route::middleware(['auth:sanctum', 'role:teacher'])->prefix('subject')->name('subject.')->group(function (): void {
+    Route::get('/schedules', [TeacherScheduleController::class, 'index'])->name('schedules.index');
     Route::get('/leave-requests', [SubjectLeaveController::class, 'index'])->name('leave-requests.index');
     Route::get('/leave-requests/{leaveRequest}', [SubjectLeaveController::class, 'show'])->name('leave-requests.show');
     Route::post('/leave-requests/{leaveRequest}/early-out/decision', [SubjectLeaveController::class, 'decide'])->name('leave-requests.early-out.decide');

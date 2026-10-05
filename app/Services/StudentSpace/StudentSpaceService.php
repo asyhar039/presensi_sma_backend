@@ -11,7 +11,6 @@ use App\Models\User;
 use App\Services\Setting\ScheduleSettingService;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Cache;
 
 class StudentSpaceService
 {
@@ -98,7 +97,7 @@ class StudentSpaceService
             ->whereDate('date', '>=', $start->toDateString())
             ->whereDate('date', '<=', $end->toDateString())
             ->pluck('date')
-            ->map(fn($date) => Carbon::parse($date)->toDateString())
+            ->map(fn ($date) => Carbon::parse($date)->toDateString())
             ->flip()
             ->all();
 
