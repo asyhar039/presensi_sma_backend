@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Homeroom;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\StudentResource;
+use App\Models\Student;
 use App\Services\Homeroom\HomeroomService;
 use App\Traits\ApiResponseTrait;
 use Dedoc\Scramble\Attributes\Endpoint;
@@ -31,6 +32,27 @@ class HomeroomController extends Controller
                 'class' => $classroom ? ['id' => $classroom->id, 'name' => $classroom->name] : null,
             ],
             message: 'Homeroom retrieved successfully.'
+        );
+    }
+
+    #[Endpoint(title: 'Show my homeroom student', description: 'Returns a single student of the authenticated teacher homeroom class. Returns 404 when the student is not in the class.')]
+    public function showStudent(Request $request, Student $student): JsonResponse
+    {
+        $classroom = $this->homeroomService->resolveClassroom($request->user());
+
+        if ($classroom === null) {
+            abort(Response::HTTP_NOT_FOUND, 'You are not assigned as a homeroom teacher in the active academic year.');
+        }
+
+        $found = $this->homeroomService->findStudent($classroom, $student->id);
+
+        if ($found === null) {
+            abort(Response::HTTP_NOT_FOUND, 'Student not found in your homeroom class.');
+        }
+
+        return $this->successResponse(
+            data: StudentResource::make($found),
+            message: 'Homeroom student retrieved successfully.'
         );
     }
 

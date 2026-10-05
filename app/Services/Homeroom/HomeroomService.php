@@ -35,6 +35,15 @@ class HomeroomService
             ->first();
     }
 
+    public function findStudent(Classroom $classroom, int $studentId): ?Student
+    {
+        return Student::query()
+            ->whereKey($studentId)
+            ->whereHas('classrooms', fn (Builder $query): Builder => $query->whereKey($classroom->id))
+            ->with('user')
+            ->first();
+    }
+
     /**
      * Same request/response contract as GET /students, scoped to the homeroom class.
      *

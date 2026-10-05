@@ -20,14 +20,17 @@ function homeroomTeacherToken(): array
 test('guests cannot access homeroom', function (): void {
     $this->getJson('/homeroom')->assertUnauthorized();
     $this->getJson('/homeroom/students')->assertUnauthorized();
+    $this->getJson('/homeroom/students/1')->assertUnauthorized();
 });
 
 test('non-teachers are forbidden from homeroom', function (): void {
     $admin = User::factory()->admin()->create();
     $token = $admin->createToken('auth-token')->plainTextToken;
+    $student = Student::factory()->create();
 
     $this->withToken($token)->getJson('/homeroom')->assertForbidden();
     $this->withToken($token)->getJson('/homeroom/students')->assertForbidden();
+    $this->withToken($token)->getJson('/homeroom/students/'.$student->id)->assertForbidden();
 });
 
 test('teacher without homeroom gets empty payload and students 404', function (): void {
@@ -60,4 +63,20 @@ test('teacher homeroom resolves active year only and lists students like index',
         ->assertJsonStructure(['data' => [['id', 'gender', 'status']]]);
 
     $this->withToken($token)->getJson('/homeroom/students?search='.$students[0]->user->name)->assertOk();
+});
+
+test('homeroom student detail returns scoped student or 404', function (): void {
+    [$token, $teacher] = homeroomTeacherToken();
+    $activeYear = AcademicYear::factory()->active()->create();
+    $classroom = Classroom::factory()->create(['academic_year_id' => $activeYear->id, 'homeroom_teacher_id' => $teacher->id]);
+    $inClass = Student::factory()->create();
+    $outClass = Student::factory()->create();
+    $classroom->students()->sync([$inClass->id]);
+
+    $this->withToken($token)->getJson('/homeroom/students/'.$inClass->id)->assertOk()
+        ->assertJsonPath('data.id', $inClass->id)
+        ->assertJsonStructure(['data' => ['id', 'gender', 'status']]);
+
+    $this->withToken($token)->getJson('/homeroom/students/'.$outClass->id)->assertNotFound();
+    $this->withToken($token)->getJson('/homeroom/students/999999')->assertNotFound();
 });

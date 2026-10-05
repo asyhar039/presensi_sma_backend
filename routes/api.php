@@ -110,6 +110,7 @@ Route::middleware(['auth:sanctum', 'role:student'])->prefix('student')->name('st
 Route::middleware(['auth:sanctum', 'role:teacher'])->prefix('homeroom')->name('homeroom.')->group(function (): void {
     Route::get('/', [HomeroomController::class, 'show'])->name('show');
     Route::get('/students', [HomeroomController::class, 'students'])->name('students.index');
+    Route::get('/students/{student}', [HomeroomController::class, 'showStudent'])->name('students.show');
     Route::get('/leave-requests', [HomeroomLeaveController::class, 'index'])->name('leave-requests.index');
     Route::get('/leave-requests/{leaveRequest}', [HomeroomLeaveController::class, 'show'])->name('leave-requests.show');
     Route::post('/leave-requests/{leaveRequest}/decision', [HomeroomLeaveController::class, 'decide'])->name('leave-requests.decide');

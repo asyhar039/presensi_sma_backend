@@ -49,15 +49,11 @@ class StudentSpaceService
             return $times;
         }
 
-        $rows = Cache::remember(
-            StudentSpaceCache::classTimes($classroom->id),
-            now()->addHour(),
-            fn (): Collection => ClassSchedule::query()
-                ->where('classroom_id', $classroom->id)
-                ->selectRaw('day, MIN(start_time) as start_time, MAX(end_time) as end_time')
-                ->groupBy('day')
-                ->get()
-        );
+        $rows = ClassSchedule::query()
+            ->where('classroom_id', $classroom->id)
+            ->selectRaw('day, MIN(start_time) as start_time, MAX(end_time) as end_time')
+            ->groupBy('day')
+            ->get();
 
         foreach ($rows as $row) {
             $day = $row->day instanceof DayEnum ? $row->day->value : (string) $row->day;
@@ -75,19 +71,13 @@ class StudentSpaceService
      */
     public function upcomingHolidays(): Collection
     {
-        return Cache::remember(
-            StudentSpaceCache::UPCOMING_HOLIDAYS,
-            now()->addHour(),
-            function (): Collection {
-                $today = Carbon::today();
+        $today = Carbon::today();
 
-                return PublicHoliday::query()
-                    ->whereDate('date', '>=', $today->toDateString())
-                    ->whereDate('date', '<=', $today->copy()->addMonth()->toDateString())
-                    ->ordered()
-                    ->get();
-            }
-        );
+        return PublicHoliday::query()
+            ->whereDate('date', '>=', $today->toDateString())
+            ->whereDate('date', '<=', $today->copy()->addMonth()->toDateString())
+            ->ordered()
+            ->get();
     }
 
     public function isSchoolDay(Carbon $date): bool
@@ -108,7 +98,7 @@ class StudentSpaceService
             ->whereDate('date', '>=', $start->toDateString())
             ->whereDate('date', '<=', $end->toDateString())
             ->pluck('date')
-            ->map(fn ($date) => Carbon::parse($date)->toDateString())
+            ->map(fn($date) => Carbon::parse($date)->toDateString())
             ->flip()
             ->all();
 
