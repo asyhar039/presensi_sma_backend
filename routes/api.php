@@ -3,14 +3,23 @@
 use App\Http\Controllers\Api\AcademicYear\AcademicYearController;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Classroom\ClassroomController;
+use App\Http\Controllers\Api\ClassSchedule\ClassScheduleController;
+use App\Http\Controllers\Api\Homeroom\HomeroomController;
+use App\Http\Controllers\Api\Presence\StudentPresenceController;
+use App\Http\Controllers\Api\Presence\TeacherPresenceController;
 use App\Http\Controllers\Api\Profile\ProfileController;
 use App\Http\Controllers\Api\Room\RoomController;
 use App\Http\Controllers\Api\Setting\PublicHolidaySettingController;
 use App\Http\Controllers\Api\Setting\ScheduleSettingController;
 use App\Http\Controllers\Api\Setting\SchoolZoneSettingController;
 use App\Http\Controllers\Api\Student\StudentController;
+use App\Http\Controllers\Api\StudentSpace\StudentSpaceController;
 use App\Http\Controllers\Api\Subject\SubjectController;
 use App\Http\Controllers\Api\Teacher\TeacherController;
+use App\Http\Controllers\Api\TeacherSpace\DutyLeaveController;
+use App\Http\Controllers\Api\TeacherSpace\HomeroomLeaveController;
+use App\Http\Controllers\Api\TeacherSpace\SubjectLeaveController;
+use App\Http\Controllers\Api\TeacherSpace\TeacherScheduleController;
 use App\Http\Controllers\Api\TeacherSubject\TeacherSubjectController;
 use Illuminate\Support\Facades\Route;
 
@@ -40,20 +49,32 @@ Route::prefix('auth')->name('auth.')->group(function (): void {
 });
 
 Route::middleware(['auth:sanctum', 'role:admin'])->group(function (): void {
+    Route::get('academic-years/dropdown/selected', [AcademicYearController::class, 'selected'])->name('academic-years.dropdown.selected');
+    Route::get('academic-years/dropdown', [AcademicYearController::class, 'dropdown'])->name('academic-years.dropdown');
     Route::apiResource('academic-years', AcademicYearController::class);
     Route::apiResource('rooms', RoomController::class);
     Route::apiResource('subjects', SubjectController::class);
 
     Route::put('students/{student}/password', [StudentController::class, 'changePassword'])->name('students.password');
+    Route::get('students/dropdown/selected', [StudentController::class, 'selected'])->name('students.dropdown.selected');
+    Route::get('students/dropdown', [StudentController::class, 'dropdown'])->name('students.dropdown');
     Route::apiResource('students', StudentController::class);
 
     Route::put('teachers/{teacher}/password', [TeacherController::class, 'changePassword'])->name('teachers.password');
+    Route::get('teachers/dropdown/selected', [TeacherController::class, 'selected'])->name('teachers.dropdown.selected');
+    Route::get('teachers/dropdown', [TeacherController::class, 'dropdown'])->name('teachers.dropdown');
     Route::apiResource('teachers', TeacherController::class);
 
     Route::get('teacher-subjects', [TeacherSubjectController::class, 'index'])->name('teacher-subjects.index');
     Route::post('teacher-subjects', [TeacherSubjectController::class, 'store'])->name('teacher-subjects.store');
     Route::delete('teacher-subjects/{teacherSubject}', [TeacherSubjectController::class, 'destroy'])->name('teacher-subjects.destroy');
 
+    Route::get('classrooms/dropdown/selected', [ClassroomController::class, 'selected'])->name('classrooms.dropdown.selected');
+    Route::get('classrooms/dropdown', [ClassroomController::class, 'dropdown'])->name('classrooms.dropdown');
+    Route::get('class-schedules', [ClassScheduleController::class, 'index'])->name('class-schedules.index');
+    Route::post('class-schedules', [ClassScheduleController::class, 'store'])->name('class-schedules.store');
+    Route::put('class-schedules/{classSchedule}', [ClassScheduleController::class, 'update'])->name('class-schedules.update');
+    Route::delete('class-schedules/{classSchedule}', [ClassScheduleController::class, 'destroy'])->name('class-schedules.destroy');
     Route::put('classrooms/{classroom}/homeroom', [ClassroomController::class, 'assignHomeroom'])->name('classrooms.homeroom.assign');
     Route::delete('classrooms/{classroom}/homeroom', [ClassroomController::class, 'removeHomeroom'])->name('classrooms.homeroom.remove');
     Route::get('classrooms/{classroom}/students', [ClassroomController::class, 'students'])->name('classrooms.students.index');
@@ -77,4 +98,58 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function (): void {
         Route::put('school-zones/{schoolZone}', [SchoolZoneSettingController::class, 'update'])->name('school-zones.update');
         Route::patch('school-zones/{schoolZone}/active', [SchoolZoneSettingController::class, 'updateActive'])->name('school-zones.active');
     });
+});
+
+Route::middleware(['auth:sanctum', 'role:admin,teacher'])->group(function (): void {
+    Route::prefix('settings')->name('settings.')->group(function (): void {
+        Route::get('schedules', [ScheduleSettingController::class, 'index'])->name('schedules.index');
+        Route::get('schedules/{day}', [ScheduleSettingController::class, 'show'])->name('schedules.show');
+    });
+});
+
+Route::middleware(['auth:sanctum', 'role:student'])->prefix('student')->name('student.')->group(function (): void {
+    Route::get('/information', [StudentSpaceController::class, 'information'])->name('information');
+    Route::get('/presence', [StudentSpaceController::class, 'presence'])->name('presence');
+    Route::get('/leave-requests', [StudentSpaceController::class, 'index'])->name('leave-requests.index');
+    Route::get('/leave-requests/{leaveRequest}', [StudentSpaceController::class, 'show'])->name('leave-requests.show');
+    Route::post('/leave-requests/sick-leave', [StudentSpaceController::class, 'storeSickLeave'])->name('leave-requests.sick-leave');
+    Route::post('/leave-requests/early-out', [StudentSpaceController::class, 'storeEarlyOut'])->name('leave-requests.early-out');
+    Route::post('/leave-requests/late-arrival', [StudentSpaceController::class, 'storeLateArrival'])->name('leave-requests.late-arrival');
+});
+
+Route::middleware(['auth:sanctum', 'role:teacher'])->prefix('homeroom')->name('homeroom.')->group(function (): void {
+    Route::get('/', [HomeroomController::class, 'show'])->name('show');
+    Route::get('/students', [HomeroomController::class, 'students'])->name('students.index');
+    Route::get('/students/{student}', [HomeroomController::class, 'showStudent'])->name('students.show');
+    Route::get('/leave-requests', [HomeroomLeaveController::class, 'index'])->name('leave-requests.index');
+    Route::get('/leave-requests/{leaveRequest}', [HomeroomLeaveController::class, 'show'])->name('leave-requests.show');
+    Route::post('/leave-requests/{leaveRequest}/decision', [HomeroomLeaveController::class, 'decide'])->name('leave-requests.decide');
+});
+
+Route::middleware(['auth:sanctum', 'role:teacher'])->prefix('duty')->name('duty.')->group(function (): void {
+    Route::get('/status', [DutyLeaveController::class, 'status'])->name('status');
+    Route::get('/leave-requests', [DutyLeaveController::class, 'index'])->name('leave-requests.index');
+    Route::get('/leave-requests/{leaveRequest}', [DutyLeaveController::class, 'show'])->name('leave-requests.show');
+    Route::post('/leave-requests/{leaveRequest}/late-arrival/decision', [DutyLeaveController::class, 'decideLateArrival'])->name('leave-requests.late-arrival.decide');
+    Route::post('/leave-requests/{leaveRequest}/early-out/decision', [DutyLeaveController::class, 'decideEarlyOut'])->name('leave-requests.early-out.decide');
+});
+
+Route::middleware(['auth:sanctum', 'role:teacher'])->prefix('subject')->name('subject.')->group(function (): void {
+    Route::get('/schedules', [TeacherScheduleController::class, 'index'])->name('schedules.index');
+    Route::get('/leave-requests', [SubjectLeaveController::class, 'index'])->name('leave-requests.index');
+    Route::get('/leave-requests/{leaveRequest}', [SubjectLeaveController::class, 'show'])->name('leave-requests.show');
+    Route::post('/leave-requests/{leaveRequest}/early-out/decision', [SubjectLeaveController::class, 'decide'])->name('leave-requests.early-out.decide');
+});
+
+Route::middleware(['auth:sanctum', 'role:teacher'])->prefix('presence')->name('presence.')->group(function (): void {
+    Route::get('/current', [TeacherPresenceController::class, 'current'])->name('current');
+    Route::post('/start', [TeacherPresenceController::class, 'start'])->name('start');
+    Route::post('/stop', [TeacherPresenceController::class, 'stop'])->name('stop');
+    Route::post('/refresh', [TeacherPresenceController::class, 'refresh'])->name('refresh');
+});
+
+Route::middleware(['auth:sanctum', 'role:student'])->prefix('student/presence')->name('student.presence.')->group(function (): void {
+    Route::get('/current', [StudentPresenceController::class, 'current'])->name('current');
+    Route::post('/scan', [StudentPresenceController::class, 'scan'])->name('scan');
+    Route::get('/history', [StudentPresenceController::class, 'history'])->name('history');
 });

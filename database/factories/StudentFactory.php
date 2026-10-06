@@ -2,8 +2,8 @@
 
 namespace Database\Factories;
 
-use App\Enums\Enums\GenderEnums;
-use App\Enums\Enums\StudentStatusEnums;
+use App\Enums\GenderEnums;
+use App\Enums\StudentStatusEnums;
 use App\Models\Student;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;

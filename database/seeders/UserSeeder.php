@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
-use App\Enums\Enums\GenderEnums;
-use App\Enums\Enums\StudentStatusEnums;
-use App\Enums\Enums\TeacherEmploymentStatusEnums;
+use App\Enums\GenderEnums;
 use App\Enums\RoleEnum;
+use App\Enums\StudentStatusEnums;
+use App\Enums\TeacherEmploymentStatusEnums;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;

@@ -1,17 +1,17 @@
 <?php
 
-namespace App\Enums\Enums;
+namespace App\Enums;
 
-enum SemesterEnums: string
+enum GenderEnums: string
 {
-    case EVEN = 'even';
-    case ODD = 'odd';
+    case Male = 'male';
+    case Female = 'female';
 
     public function label(): string
     {
         return match ($this) {
-            self::EVEN => 'Genap',
-            self::ODD => 'Ganjil',
+            self::Male => 'Laki-laki',
+            self::Female => 'Perempuan',
         };
     }
 

@@ -5,7 +5,11 @@ namespace App\Services\Classroom;
 use App\Models\AcademicYear;
 use App\Models\Classroom;
 use App\Models\Student;
+use App\Services\DataTable\DataTableBuilder;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -27,9 +31,9 @@ class ClassroomService
     /**
      * @param  array<string, mixed>  $data
      */
-    public function create(array $data): Classroom
+    public function create(array $data): void
     {
-        return DB::transaction(function () use ($data): Classroom {
+        DB::transaction(function () use ($data) {
             $academicYearId = $this->resolveAcademicYearId($data['academic_year_id'] ?? null);
             $homeroomTeacherId = $data['homeroom_teacher_id'] ?? null;
 
@@ -37,22 +41,20 @@ class ClassroomService
                 $this->ensureHomeroomAvailable($homeroomTeacherId, $academicYearId);
             }
 
-            $classroom = Classroom::query()->create([
+            Classroom::query()->create([
                 'name' => $data['name'],
                 'academic_year_id' => $academicYearId,
                 'homeroom_teacher_id' => $homeroomTeacherId,
             ]);
-
-            return $classroom->load(['academicYear', 'homeroomTeacher.user']);
         });
     }
 
     /**
      * @param  array<string, mixed>  $data
      */
-    public function update(Classroom $classroom, array $data): Classroom
+    public function update(Classroom $classroom, array $data): void
     {
-        return DB::transaction(function () use ($classroom, $data): Classroom {
+        DB::transaction(function () use ($classroom, $data) {
             $academicYearId = $data['academic_year_id'] ?? $classroom->academic_year_id;
 
             if (array_key_exists('homeroom_teacher_id', $data) && $data['homeroom_teacher_id'] !== null) {
@@ -61,8 +63,6 @@ class ClassroomService
 
             $classroom->fill($data);
             $classroom->save();
-
-            return $classroom->load(['academicYear', 'homeroomTeacher.user']);
         });
     }
 
@@ -71,17 +71,15 @@ class ClassroomService
         $classroom->delete();
     }
 
-    public function assignHomeroom(Classroom $classroom, ?int $teacherId): Classroom
+    public function assignHomeroom(Classroom $classroom, ?int $teacherId): void
     {
-        return DB::transaction(function () use ($classroom, $teacherId): Classroom {
+        DB::transaction(function () use ($classroom, $teacherId) {
             if ($teacherId !== null) {
                 $this->ensureHomeroomAvailable($teacherId, $classroom->academic_year_id, $classroom->id);
             }
 
             $classroom->homeroom_teacher_id = $teacherId;
             $classroom->save();
-
-            return $classroom->load(['academicYear', 'homeroomTeacher.user']);
         });
     }
 
@@ -100,6 +98,40 @@ class ClassroomService
     public function removeStudent(Classroom $classroom, Student $student): void
     {
         $classroom->students()->detach($student->id);
+    }
+
+    /**
+     * @return LengthAwarePaginator<int, Classroom>
+     */
+    public function dropdown(Request $request): LengthAwarePaginator
+    {
+        if (! $request->filled('academic_year_id')) {
+            $activeId = AcademicYear::query()->active()->value('id');
+            if ($activeId !== null) {
+                $request->merge(['academic_year_id' => $activeId]);
+            }
+        }
+
+        return DataTableBuilder::make(Classroom::query(), $request)
+            ->searchable(['name'])
+            ->paginateParams(20)
+            ->addFilter('academic_year_id', ['nullable', 'integer', 'exists:academic_years,id'], function (Builder $query, int $value): void {
+                $query->where('academic_year_id', $value);
+            })
+            ->paginate();
+    }
+
+    /**
+     * @param  array<int, int>  $ids
+     * @return Collection<int, Classroom>
+     */
+    public function selected(array $ids): Collection
+    {
+        if ($ids === []) {
+            return new Collection;
+        }
+
+        return Classroom::query()->whereKey($ids)->get();
     }
 
     /**

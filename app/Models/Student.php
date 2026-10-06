@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use App\Enums\Enums\GenderEnums;
-use App\Enums\Enums\StudentStatusEnums;
+use App\Enums\GenderEnums;
+use App\Enums\StudentStatusEnums;
 use Database\Factories\StudentFactory;
 use Illuminate\Database\Eloquent\Attributes\CollectedBy;
 use Illuminate\Database\Eloquent\Attributes\Fillable;

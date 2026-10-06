@@ -3,22 +3,23 @@
 namespace Database\Seeders;
 
 use App\Models\PublicHoliday;
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 
 class PublicHolidaySeeder extends Seeder
 {
     public function run(): void
     {
-        $now = now();
+        $now = Carbon::now();
 
-        $holidays = array_map(fn ($val) => [
+        $records = collect($this->holidays())->map(fn ($val) => [
             'name' => $val['name'],
             'date' => $val['date'],
             'created_at' => $now,
             'updated_at' => $now,
-        ], $this->holidays());
+        ])->toArray();
 
-        PublicHoliday::insert($holidays);
+        PublicHoliday::insert($records);
     }
 
     /**

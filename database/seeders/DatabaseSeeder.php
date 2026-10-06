@@ -10,11 +10,11 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             UserSeeder::class,
-            AcademicYearSeeder::class,
             RoomSeeder::class,
             SubjectSeeder::class,
             ScheduleSettingSeeder::class,
             PublicHolidaySeeder::class,
+            AcademicYear20262027Seeder::class,
         ]);
     }
 }

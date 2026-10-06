@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests\Student;
 
-use App\Enums\Enums\GenderEnums;
-use App\Enums\Enums\StudentStatusEnums;
+use App\Enums\GenderEnums;
 use App\Enums\RoleEnum;
+use App\Enums\StudentStatusEnums;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 

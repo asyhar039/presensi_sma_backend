@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\StudentSpace\StudentSpaceCache;
 use Database\Factories\PublicHolidayFactory;
 use Illuminate\Database\Eloquent\Attributes\CollectedBy;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -23,6 +24,15 @@ class PublicHoliday extends Model
 {
     /** @use HasFactory<PublicHolidayFactory> */
     use HasFactory;
+
+    protected static function booted(): void
+    {
+        $flush = fn (): callable => function (): void {
+            StudentSpaceCache::forgetUpcomingHolidays();
+        };
+        static::saved($flush());
+        static::deleted($flush());
+    }
 
     protected function casts(): array
     {

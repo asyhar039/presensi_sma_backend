@@ -22,7 +22,6 @@ class ClassroomResource extends JsonResource
             'academic_year' => AcademicYearResource::make($this->whenLoaded('academicYear')),
             'homeroom_teacher' => TeacherResource::make($this->whenLoaded('homeroomTeacher')),
             'students_count' => $this->whenCounted('students'),
-            'students' => StudentResource::collection($this->whenLoaded('students')),
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
         ];
