@@ -5,6 +5,8 @@ use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Classroom\ClassroomController;
 use App\Http\Controllers\Api\ClassSchedule\ClassScheduleController;
 use App\Http\Controllers\Api\Homeroom\HomeroomController;
+use App\Http\Controllers\Api\Presence\StudentPresenceController;
+use App\Http\Controllers\Api\Presence\TeacherPresenceController;
 use App\Http\Controllers\Api\Profile\ProfileController;
 use App\Http\Controllers\Api\Room\RoomController;
 use App\Http\Controllers\Api\Setting\PublicHolidaySettingController;
@@ -137,4 +139,17 @@ Route::middleware(['auth:sanctum', 'role:teacher'])->prefix('subject')->name('su
     Route::get('/leave-requests', [SubjectLeaveController::class, 'index'])->name('leave-requests.index');
     Route::get('/leave-requests/{leaveRequest}', [SubjectLeaveController::class, 'show'])->name('leave-requests.show');
     Route::post('/leave-requests/{leaveRequest}/early-out/decision', [SubjectLeaveController::class, 'decide'])->name('leave-requests.early-out.decide');
+});
+
+Route::middleware(['auth:sanctum', 'role:teacher'])->prefix('presence')->name('presence.')->group(function (): void {
+    Route::get('/current', [TeacherPresenceController::class, 'current'])->name('current');
+    Route::post('/start', [TeacherPresenceController::class, 'start'])->name('start');
+    Route::post('/stop', [TeacherPresenceController::class, 'stop'])->name('stop');
+    Route::post('/refresh', [TeacherPresenceController::class, 'refresh'])->name('refresh');
+});
+
+Route::middleware(['auth:sanctum', 'role:student'])->prefix('student/presence')->name('student.presence.')->group(function (): void {
+    Route::get('/current', [StudentPresenceController::class, 'current'])->name('current');
+    Route::post('/scan', [StudentPresenceController::class, 'scan'])->name('scan');
+    Route::get('/history', [StudentPresenceController::class, 'history'])->name('history');
 });

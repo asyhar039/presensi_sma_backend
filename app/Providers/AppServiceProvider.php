@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\User;
+use Carbon\Carbon;
 use Dedoc\Scramble\Scramble;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -27,5 +28,8 @@ class AppServiceProvider extends ServiceProvider
         if (app()->isProduction()) {
             Scramble::configure()->expose(false);
         }
+
+        config(['app.locale' => 'id']);
+        Carbon::setLocale('id');
     }
 }

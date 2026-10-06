@@ -1,6 +1,14 @@
 <?php
 
+use App\Models\AcademicYear;
+use App\Models\Classroom;
+use App\Models\ClassSchedule;
+use App\Models\Student;
+use App\Models\Teacher;
+use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 /*
@@ -44,7 +52,23 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+function presenceSetupHelper(?Carbon $at = null): array
 {
-    // ..
+    $at ??= Carbon::parse('2026-10-06 08:10:00');
+    Carbon::setTestNow($at);
+    Cache::flush();
+    $year = AcademicYear::factory()->active()->create();
+    $tUser = User::factory()->teacher()->create();
+    $teacher = Teacher::factory()->create(['user_id' => $tUser->id]);
+    $classroom = Classroom::factory()->create(['academic_year_id' => $year->id]);
+    $day = strtolower($at->format('l'));
+    $schedule = ClassSchedule::create([
+        'classroom_id' => $classroom->id, 'day' => $day, 'period' => 0,
+        'start_time' => '08:00:00', 'end_time' => '09:30:00', 'teacher_id' => $teacher->id,
+    ]);
+    $sUser = User::factory()->student()->create();
+    $student = Student::factory()->create(['user_id' => $sUser->id]);
+    $classroom->students()->sync([$student->id]);
+
+    return [$tUser, $teacher, $sUser, $student, $classroom, $schedule, $at];
 }

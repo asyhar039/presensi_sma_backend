@@ -106,8 +106,9 @@ class LeaveRequestApprovalService
 
     public function resolveEarlyOutClassroom(LeaveRequest $leave): ?Classroom
     {
-        $timeIn = substr((string) $leave->getRawOriginal('time_in'), 0, 8);
-        if ($timeIn === '') {
+        // ponytail: exit-slot teacher only; upgrade to full [time_out, time_in] overlap if multi-slot approval needed.
+        $timeOut = substr((string) $leave->getRawOriginal('time_out'), 0, 8);
+        if ($timeOut === '') {
             return null;
         }
         $student = Student::query()->where('user_id', $leave->user_id)->first();
@@ -118,10 +119,10 @@ class LeaveRequestApprovalService
 
         return $student->classrooms()
             ->when($yearId, fn ($q) => $q->where('classrooms.academic_year_id', $yearId))
-            ->whereHas('classSchedules', function ($q) use ($timeIn): void {
+            ->whereHas('classSchedules', function ($q) use ($timeOut): void {
                 $q->where('day', strtolower(now()->format('l')))
-                    ->whereTime('start_time', '<=', $timeIn)
-                    ->whereTime('end_time', '>=', $timeIn);
+                    ->whereTime('start_time', '<=', $timeOut)
+                    ->whereTime('end_time', '>=', $timeOut);
             })
             ->first();
     }
@@ -211,16 +212,16 @@ class LeaveRequestApprovalService
         if ($leave->type !== LeaveRequestTypeEnum::EarlyOut) {
             abort(403, 'Forbidden.');
         }
-        $timeIn = substr((string) $leave->getRawOriginal('time_in'), 0, 8);
-        abort_if($timeIn === '', 403, 'Forbidden.');
+        $timeOut = substr((string) $leave->getRawOriginal('time_out'), 0, 8);
+        abort_if($timeOut === '', 403, 'Forbidden.');
         $studentId = Student::query()->where('user_id', $leave->user_id)->value('id');
         abort_if($studentId === null, 403, 'Forbidden.');
         $yearId = $this->activeYearId();
         $allowed = ClassSchedule::query()
             ->where('teacher_id', $teacherId)
             ->where('day', strtolower(Carbon::today()->format('l')))
-            ->whereTime('start_time', '<=', $timeIn)
-            ->whereTime('end_time', '>=', $timeIn)
+            ->whereTime('start_time', '<=', $timeOut)
+            ->whereTime('end_time', '>=', $timeOut)
             ->whereHas('classroom.studentClassrooms', fn ($q) => $q->where('student_id', $studentId))
             ->when($yearId, fn ($q) => $q->whereHas('classroom', fn ($qq) => $qq->where('academic_year_id', $yearId)))
             ->exists();
