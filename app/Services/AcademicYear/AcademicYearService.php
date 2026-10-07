@@ -2,11 +2,11 @@
 
 namespace App\Services\AcademicYear;
 
-use App\Enums\Enums\SemesterEnums;
 use App\Models\AcademicYear;
 use App\Services\DataTable\DataTableBuilder;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -19,30 +19,51 @@ class AcademicYearService
      */
     public function paginate(Request $request): LengthAwarePaginator
     {
-        $semesters = implode(',', array_column(SemesterEnums::cases(), 'value'));
-
         return DataTableBuilder::make(AcademicYear::query(), $request)
             ->sortable([
                 'id' => 'id',
-                'start_date' => 'start_date',
-                'end_date' => 'end_date',
+                'odd_start_date' => 'odd_start_date',
+                'odd_end_date' => 'odd_end_date',
+                'even_start_date' => 'even_start_date',
+                'even_end_date' => 'even_end_date',
                 'semester' => 'semester',
                 'is_active' => 'is_active',
                 'created_at' => 'created_at',
             ])
-            ->addFilter('semester', ['nullable', 'string', 'in:'.$semesters], function (Builder $query, string $value): void {
-                $query->where('semester', $value);
-            })
             ->addFilter('year', ['nullable', 'integer', 'min:1900', 'max:2100'], function (Builder $query, int $value): void {
                 $query->where(function (Builder $query) use ($value): void {
-                    $query->whereYear('start_date', $value)->orWhereYear('end_date', $value);
+                    $query->whereYear('odd_start_date', $value)->orWhereYear('odd_end_date', $value)->orWhereYear('even_start_date', $value)->orWhereYear('even_end_date', $value);
                 });
             })
             ->paginate();
     }
 
     /**
-     * @param  array{start_date: string, end_date: string, semester: string, is_active?: bool}  $data
+     * @return LengthAwarePaginator<int, AcademicYear>
+     */
+    public function dropdown(Request $request): LengthAwarePaginator
+    {
+        return DataTableBuilder::make(AcademicYear::query(), $request)
+            ->searchable(['odd_start_date', 'odd_end_date', 'even_start_date', 'even_end_date'])
+            ->paginateParams(20)
+            ->paginate();
+    }
+
+    /**
+     * @param  array<int, int>  $ids
+     * @return Collection<int, AcademicYear>
+     */
+    public function selected(array $ids): Collection
+    {
+        if ($ids === []) {
+            return new Collection;
+        }
+
+        return AcademicYear::query()->whereKey($ids)->get();
+    }
+
+    /**
+     * @param  array{odd_start_date: string, odd_end_date: string, even_start_date: string, even_end_date: string, is_active?: bool}  $data
      */
     public function create(array $data): AcademicYear
     {
@@ -56,7 +77,7 @@ class AcademicYearService
     }
 
     /**
-     * @param  array<string, mixed>  $data
+     * @param  array{odd_start_date: string, odd_end_date: string, even_start_date: string, even_end_date: string, is_active?: bool}  $data
      */
     public function update(AcademicYear $academicYear, array $data): AcademicYear
     {

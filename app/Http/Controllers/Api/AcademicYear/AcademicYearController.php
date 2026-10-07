@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Api\AcademicYear;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AcademicYear\StoreAcademicYearRequest;
 use App\Http\Requests\AcademicYear\UpdateAcademicYearRequest;
+use App\Http\Requests\Dropdown\DropdownSelectedRequest;
 use App\Http\Resources\AcademicYearResource;
+use App\Http\Resources\Dropdown\AcademicYearDropdownResource;
 use App\Models\AcademicYear;
 use App\Services\AcademicYear\AcademicYearService;
 use App\Traits\ApiResponseTrait;
@@ -31,7 +33,7 @@ class AcademicYearController extends Controller
     #[QueryParameter('per_page', description: 'Items per page (max 50).', type: 'int', default: 10)]
     #[QueryParameter('semester', description: 'Filter by semester: odd, even.', type: 'string')]
     #[QueryParameter('year', description: 'Filter by year matching the start or end date.', type: 'int')]
-    #[QueryParameter('sortBy', description: 'Sort column: id, start_date, end_date, semester, is_active, created_at.', type: 'string')]
+    #[QueryParameter('sortBy', description: 'Sort column: id, odd_start_date, odd_end_date, even_start_date, even_end_date, semester, is_active, created_at.', type: 'string')]
     #[QueryParameter('order', description: 'Sort direction: asc or desc.', type: 'string')]
     public function index(Request $request): JsonResponse
     {
@@ -41,6 +43,39 @@ class AcademicYearController extends Controller
             $paginator,
             AcademicYearResource::collection($paginator->items()),
             'Academic years retrieved successfully.'
+        );
+    }
+
+    /**
+     * Academic year options for dropdowns.
+     */
+    #[Endpoint(title: 'List academic years dropdown', description: 'Returns paginated {value, label} academic year options; label is the year range e.g. 2025/2026.')]
+    #[QueryParameter('search', description: 'Search by year, e.g. 2025.', type: 'string')]
+    #[QueryParameter('page', description: 'Current page number.', type: 'int', default: 1)]
+    #[QueryParameter('per_page', description: 'Items per page (max 50).', type: 'int', default: 20)]
+    public function dropdown(Request $request): JsonResponse
+    {
+        $paginator = $this->academicYearService->dropdown($request);
+
+        return $this->paginatedResponse(
+            $paginator,
+            AcademicYearDropdownResource::collection($paginator->items()),
+            'Academic years dropdown retrieved successfully.'
+        );
+    }
+
+    /**
+     * Selected options for dropdowns.
+     */
+    #[Endpoint(title: 'List academic years dropdown selected', description: 'Returns {value, label} options matching the given active_ids, without pagination meta.')]
+    #[QueryParameter('active_ids', description: 'IDs to resolve, e.g. ?active_ids[]=1&active_ids[]=2.', type: 'array')]
+    public function selected(DropdownSelectedRequest $request): JsonResponse
+    {
+        $items = $this->academicYearService->selected($request->activeIds());
+
+        return $this->successResponse(
+            AcademicYearDropdownResource::collection($items),
+            'Academic years dropdown selected retrieved successfully.'
         );
     }
 

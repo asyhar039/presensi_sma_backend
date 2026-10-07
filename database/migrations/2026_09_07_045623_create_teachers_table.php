@@ -1,7 +1,7 @@
 <?php
 
-use App\Enums\Enums\GenderEnums;
-use App\Enums\Enums\TeacherEmploymentStatusEnums;
+use App\Enums\GenderEnums;
+use App\Enums\TeacherEmploymentStatusEnums;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;

@@ -1,6 +1,5 @@
 <?php
 
-use App\Enums\Enums\SemesterEnums;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -14,9 +13,10 @@ return new class extends Migration
     {
         Schema::create('academic_years', function (Blueprint $table) {
             $table->id();
-            $table->date('start_date');
-            $table->date('end_date');
-            $table->enum('semester', array_column(SemesterEnums::cases(), 'value'));
+            $table->date('odd_start_date');
+            $table->date('odd_end_date');
+            $table->date('even_start_date');
+            $table->date('even_end_date');
             $table->boolean('is_active')->default(false);
             $table->timestamps();
         });

@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Enums\Enums\SemesterEnums;
 use App\Models\AcademicYear;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -18,12 +17,19 @@ class AcademicYearFactory extends Factory
      */
     public function definition(): array
     {
-        $start = fake()->dateTimeBetween('-2 years', 'now');
+        $startYear = $this->faker->numberBetween(2026, 2027);
+
+        $oddStart = $this->faker->dateTimeBetween("{$startYear}-08-01", "{$startYear}-09-15");
+        $oddEnd = (clone $oddStart)->modify('+4 months');
+
+        $evenStart = (clone $oddEnd)->modify('+1 week');
+        $evenEnd = (clone $evenStart)->modify('+4 months');
 
         return [
-            'start_date' => $start->format('Y-m-d'),
-            'end_date' => (clone $start)->modify('+1 year')->format('Y-m-d'),
-            'semester' => fake()->randomElement(SemesterEnums::cases()),
+            'odd_start_date' => $oddStart->format('Y-m-d'),
+            'odd_end_date' => $oddEnd->format('Y-m-d'),
+            'even_start_date' => $evenStart->format('Y-m-d'),
+            'even_end_date' => $evenEnd->format('Y-m-d'),
             'is_active' => false,
         ];
     }
