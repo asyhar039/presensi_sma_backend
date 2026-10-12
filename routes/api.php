@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AcademicYear\AcademicYearController;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Classroom\ClassroomController;
 use App\Http\Controllers\Api\ClassSchedule\ClassScheduleController;
+use App\Http\Controllers\Api\DutyTeacher\DutyTeacherController;
 use App\Http\Controllers\Api\Homeroom\HomeroomController;
 use App\Http\Controllers\Api\Presence\StudentPresenceController;
 use App\Http\Controllers\Api\Presence\TeacherPresenceController;
@@ -68,6 +69,8 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function (): void {
     Route::get('teacher-subjects', [TeacherSubjectController::class, 'index'])->name('teacher-subjects.index');
     Route::post('teacher-subjects', [TeacherSubjectController::class, 'store'])->name('teacher-subjects.store');
     Route::delete('teacher-subjects/{teacherSubject}', [TeacherSubjectController::class, 'destroy'])->name('teacher-subjects.destroy');
+
+    Route::apiResource('duty-teachers', DutyTeacherController::class);
 
     Route::get('classrooms/dropdown/selected', [ClassroomController::class, 'selected'])->name('classrooms.dropdown.selected');
     Route::get('classrooms/dropdown', [ClassroomController::class, 'dropdown'])->name('classrooms.dropdown');
