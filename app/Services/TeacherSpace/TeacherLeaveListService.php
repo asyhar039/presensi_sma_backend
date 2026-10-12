@@ -141,8 +141,18 @@ class TeacherLeaveListService
 
     public function findForDuty(User $teacher, int $id): LeaveRequest
     {
+        return $this->resolveForDuty($teacher, 'leave_requests.id', $id);
+    }
+
+    public function findForDutyByKey(User $teacher, string $key): LeaveRequest
+    {
+        return $this->resolveForDuty($teacher, 'leave_requests.key', $key);
+    }
+
+    private function resolveForDuty(User $teacher, string $column, int|string $value): LeaveRequest
+    {
         abort_unless($this->approvals->isDutyTeacherToday($teacher), 403, 'Only today duty teacher can access.');
-        $leave = $this->dutyQuery()->where('leave_requests.id', $id)->first();
+        $leave = $this->dutyQuery()->where($column, $value)->first();
         abort_if($leave === null, 404, 'Leave request not found.');
         abort_unless(
             in_array($leave->type->value, [LeaveRequestTypeEnum::EarlyOut->value, LeaveRequestTypeEnum::LateArrival->value], true),

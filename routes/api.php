@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AcademicYear\AcademicYearController;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Classroom\ClassroomController;
 use App\Http\Controllers\Api\ClassSchedule\ClassScheduleController;
+use App\Http\Controllers\Api\DutyTeacher\DutyTeacherController;
 use App\Http\Controllers\Api\Homeroom\HomeroomController;
 use App\Http\Controllers\Api\Presence\StudentPresenceController;
 use App\Http\Controllers\Api\Presence\TeacherPresenceController;
@@ -69,6 +70,8 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function (): void {
     Route::post('teacher-subjects', [TeacherSubjectController::class, 'store'])->name('teacher-subjects.store');
     Route::delete('teacher-subjects/{teacherSubject}', [TeacherSubjectController::class, 'destroy'])->name('teacher-subjects.destroy');
 
+    Route::apiResource('duty-teachers', DutyTeacherController::class);
+
     Route::get('classrooms/dropdown/selected', [ClassroomController::class, 'selected'])->name('classrooms.dropdown.selected');
     Route::get('classrooms/dropdown', [ClassroomController::class, 'dropdown'])->name('classrooms.dropdown');
     Route::get('class-schedules', [ClassScheduleController::class, 'index'])->name('class-schedules.index');
@@ -129,6 +132,7 @@ Route::middleware(['auth:sanctum', 'role:teacher'])->prefix('homeroom')->name('h
 Route::middleware(['auth:sanctum', 'role:teacher'])->prefix('duty')->name('duty.')->group(function (): void {
     Route::get('/status', [DutyLeaveController::class, 'status'])->name('status');
     Route::get('/leave-requests', [DutyLeaveController::class, 'index'])->name('leave-requests.index');
+    Route::post('/leave-requests/key/{leaveRequestKey}/early-out/decision', [DutyLeaveController::class, 'decideEarlyOutByKey'])->where('leaveRequestKey', '[A-Za-z0-9]{16}')->name('leave-requests.early-out.decide-by-key');
     Route::get('/leave-requests/{leaveRequest}', [DutyLeaveController::class, 'show'])->name('leave-requests.show');
     Route::post('/leave-requests/{leaveRequest}/late-arrival/decision', [DutyLeaveController::class, 'decideLateArrival'])->name('leave-requests.late-arrival.decide');
     Route::post('/leave-requests/{leaveRequest}/early-out/decision', [DutyLeaveController::class, 'decideEarlyOut'])->name('leave-requests.early-out.decide');
