@@ -129,6 +129,7 @@ Route::middleware(['auth:sanctum', 'role:teacher'])->prefix('homeroom')->name('h
 Route::middleware(['auth:sanctum', 'role:teacher'])->prefix('duty')->name('duty.')->group(function (): void {
     Route::get('/status', [DutyLeaveController::class, 'status'])->name('status');
     Route::get('/leave-requests', [DutyLeaveController::class, 'index'])->name('leave-requests.index');
+    Route::post('/leave-requests/key/{leaveRequestKey}/early-out/decision', [DutyLeaveController::class, 'decideEarlyOutByKey'])->where('leaveRequestKey', '[A-Za-z0-9]{16}')->name('leave-requests.early-out.decide-by-key');
     Route::get('/leave-requests/{leaveRequest}', [DutyLeaveController::class, 'show'])->name('leave-requests.show');
     Route::post('/leave-requests/{leaveRequest}/late-arrival/decision', [DutyLeaveController::class, 'decideLateArrival'])->name('leave-requests.late-arrival.decide');
     Route::post('/leave-requests/{leaveRequest}/early-out/decision', [DutyLeaveController::class, 'decideEarlyOut'])->name('leave-requests.early-out.decide');
