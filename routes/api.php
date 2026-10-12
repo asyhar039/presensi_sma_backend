@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\TeacherSpace\DutyLeaveController;
 use App\Http\Controllers\Api\TeacherSpace\HomeroomLeaveController;
 use App\Http\Controllers\Api\TeacherSpace\SubjectLeaveController;
 use App\Http\Controllers\Api\TeacherSpace\TeacherScheduleController;
+use App\Http\Controllers\Api\TeacherSpace\TeacherStudentHistoryController;
 use App\Http\Controllers\Api\TeacherSubject\TeacherSubjectController;
 use Illuminate\Support\Facades\Route;
 
@@ -136,6 +137,13 @@ Route::middleware(['auth:sanctum', 'role:teacher'])->prefix('duty')->name('duty.
     Route::get('/leave-requests/{leaveRequest}', [DutyLeaveController::class, 'show'])->name('leave-requests.show');
     Route::post('/leave-requests/{leaveRequest}/late-arrival/decision', [DutyLeaveController::class, 'decideLateArrival'])->name('leave-requests.late-arrival.decide');
     Route::post('/leave-requests/{leaveRequest}/early-out/decision', [DutyLeaveController::class, 'decideEarlyOut'])->name('leave-requests.early-out.decide');
+});
+
+Route::middleware(['auth:sanctum', 'role:teacher'])->prefix('teacher')->name('teacher.')->group(function (): void {
+    Route::get('/classrooms/dropdown/selected', [TeacherStudentHistoryController::class, 'classroomsSelected'])->name('classrooms.dropdown.selected');
+    Route::get('/classrooms/dropdown', [TeacherStudentHistoryController::class, 'classroomsDropdown'])->name('classrooms.dropdown');
+    Route::get('/students-history', [TeacherStudentHistoryController::class, 'index'])->name('students-history.index');
+    Route::get('/students-history/{student}', [TeacherStudentHistoryController::class, 'show'])->name('students-history.show');
 });
 
 Route::middleware(['auth:sanctum', 'role:teacher'])->prefix('subject')->name('subject.')->group(function (): void {

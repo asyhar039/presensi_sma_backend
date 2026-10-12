@@ -371,20 +371,22 @@ class PresenceService
         return $map;
     }
 
-    public function monthlyHistory(User $user, string $month): array
+    public function monthlyHistory(User $user, string $month, ?int $teacherId = null, ?int $classroomId = null): array
     {
         $student = $user->student;
         abort_if($student === null, 404, 'Student profile not found.');
         $start = Carbon::createFromFormat('Y-m', $month)->startOfMonth();
         $end = $start->copy()->endOfMonth();
         $yearId = $this->activeYearId();
-        $classroomId = $student->classrooms()
+        $classroomId ??= $student->classrooms()
             ->when($yearId, fn ($q) => $q->where('classrooms.academic_year_id', $yearId))
             ->value('classrooms.id');
 
         $schedules = $classroomId !== null
             ? ClassSchedule::query()->with(['classroom', 'teacher.user'])
-                ->where('classroom_id', $classroomId)->orderBy('start_time')->get()
+                ->where('classroom_id', $classroomId)
+                ->when($teacherId !== null, fn ($q) => $q->where('teacher_id', $teacherId))
+                ->orderBy('start_time')->get()
             : collect();
 
         $sessions = PresenceSession::query()->with('schedule')
