@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\TeacherSpace\DecideLeaveRequestRequest;
 use App\Http\Resources\StudentSpace\LeaveRequestResource;
 use App\Http\Resources\TeacherSpace\TeacherLeaveRequestResource;
+use App\Models\LeaveRequest;
 use App\Services\LeaveRequest\LeaveRequestApprovalService;
 use App\Services\TeacherSpace\TeacherLeaveListService;
 use App\Traits\ApiResponseTrait;
@@ -69,27 +70,24 @@ class DutyLeaveController extends Controller
     #[Endpoint(title: 'Decide late arrival (duty)', description: 'Approve or reject a late_arrival request as duty teacher.')]
     public function decideLateArrival(DecideLeaveRequestRequest $request, int $leaveRequest): JsonResponse
     {
-        $leave = $this->leaves->findForDuty($request->user(), $leaveRequest);
-
-        $decided = $this->approvals->decide(
-            $leave,
-            $request->user(),
-            LeaveRequestStepEnum::DutyTeacher,
-            $request->string('decision')->toString(),
-            $request->input('notes')
-        );
-
-        return $this->successResponse(
-            data: LeaveRequestResource::make($decided),
-            message: 'Leave request decided successfully.'
-        );
+        return $this->decide($request, $this->leaves->findForDuty($request->user(), $leaveRequest));
     }
 
     #[Endpoint(title: 'Decide early out final (duty)', description: 'Final duty-teacher approval for an early_out request after the subject teacher approved.')]
     public function decideEarlyOut(DecideLeaveRequestRequest $request, int $leaveRequest): JsonResponse
     {
-        $leave = $this->leaves->findForDuty($request->user(), $leaveRequest);
+        return $this->decide($request, $this->leaves->findForDuty($request->user(), $leaveRequest));
+    }
 
+    #[Endpoint(title: 'Decide early out by key (duty)', description: 'Final duty-teacher approval for an early_out request looked up by its unique key.')]
+    public function decideEarlyOutByKey(DecideLeaveRequestRequest $request, string $leaveRequestKey): JsonResponse
+    {
+        return $this->decide($request, $this->leaves->findForDutyByKey($request->user(), $leaveRequestKey));
+    }
+
+    private function decide(DecideLeaveRequestRequest $request, LeaveRequest $leave): JsonResponse
+    {
+        // ponytail: single-step decide only; add per-type step guards here when flows diverge.
         $decided = $this->approvals->decide(
             $leave,
             $request->user(),

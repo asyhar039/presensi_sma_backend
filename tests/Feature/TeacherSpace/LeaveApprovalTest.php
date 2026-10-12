@@ -216,3 +216,42 @@ test('subject teacher without current slot gets empty queue', function (): void 
 
     $this->actingAs($soloUser)->getJson('/subject/leave-requests')->assertNotFound();
 });
+
+test('duty early out decision by key approves after subject step', function (): void {
+    [$sToken, $sUser, $student] = makeStudent();
+    [$subToken, $subUser, $subTeacher] = makeTeacher();
+    [$dutyToken, $dutyUser, $dutyTeacher] = makeTeacher();
+    fullSchoolWeek();
+    $day = strtolower(now()->format('l'));
+    app(ScheduleSettingService::class)->updateDay($day, [
+        ['start' => '00:00', 'end' => '23:59'],
+    ]);
+    $year = AcademicYear::factory()->active()->create();
+    $classroom = Classroom::factory()->create(['academic_year_id' => $year->id]);
+    $classroom->students()->sync([$student->id]);
+    ClassSchedule::create([
+        'classroom_id' => $classroom->id, 'day' => $day, 'period' => 0,
+        'start_time' => '00:00', 'end_time' => '23:59', 'teacher_id' => $subTeacher->id,
+    ]);
+    DutyTeacher::create([
+        'academic_year_id' => $year->id, 'teacher_id' => $dutyTeacher->id,
+        'day' => $day, 'start_time' => '00:00', 'end_time' => '23:59',
+    ]);
+
+    $this->withToken($sToken)->postJson('/student/leave-requests/early-out', [
+        'time_out' => '10:00', 'time_in' => '12:00', 'exit_reason' => 'pergi', 'destination' => 'rumah',
+    ])->assertCreated();
+    $leave = LeaveRequest::query()->firstOrFail();
+
+    $this->actingAs($subUser)->postJson("/subject/leave-requests/{$leave->id}/early-out/decision", [
+        'decision' => 'approved',
+    ])->assertOk();
+
+    $this->actingAs($dutyUser)->postJson("/duty/leave-requests/key/{$leave->key}/early-out/decision", [
+        'decision' => 'approved',
+    ])->assertOk()->assertJsonPath('data.status.key', 'approved');
+
+    $this->actingAs($dutyUser)->postJson('/duty/leave-requests/key/UNKNOWNKEY123456/early-out/decision', [
+        'decision' => 'approved',
+    ])->assertNotFound();
+});
