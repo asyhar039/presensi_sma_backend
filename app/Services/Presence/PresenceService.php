@@ -442,7 +442,7 @@ class PresenceService
                     $status = 'permit';
                 } elseif ($session !== null && isset($scanned[$session->id])) {
                     $status = 'present';
-                } elseif ($session !== null && $session->status === 'closed' && $key < $this->now()->toDateString()) {
+                } elseif ($session !== null && $session->status === 'closed') {
                     $status = 'alpha';
                 } elseif ($key < $this->now()->toDateString()) {
                     $status = 'alpha';

@@ -119,7 +119,31 @@ class TeacherStudentHistoryService
             ])
             ->paginate();
 
-        $this->attachSummaries($paginator->getCollection(), $year, $this->normalizeSemester($request->input('semester')));
+        $students = $paginator->getCollection();
+        if ($students->isNotEmpty()) {
+            $semester = $this->normalizeSemester($request->input('semester'));
+            $teacher = $request->user();
+            $teacherId = $teacher?->teacher?->id;
+
+            if ($teacherId !== null) {
+                $schedulesByClassroom = ClassSchedule::query()
+                    ->whereIn('classroom_id', $ids)
+                    ->where('teacher_id', $teacherId)
+                    ->get()
+                    ->groupBy('classroom_id');
+
+                $studentsByClassroom = $students->groupBy(function (Student $s) use ($ids): int {
+                    return (int) ($s->classrooms->pluck('id')->intersect($ids)->first() ?? 0);
+                });
+
+                foreach ($studentsByClassroom as $cId => $classStudents) {
+                    $cScheduleIds = $schedulesByClassroom->get($cId, collect())->pluck('id')->all();
+                    $this->attachSummaries($classStudents, $year, $semester, null, null, $cScheduleIds);
+                }
+            } else {
+                $this->attachSummaries($students, $year, $semester);
+            }
+        }
 
         return $paginator;
     }
@@ -133,8 +157,8 @@ class TeacherStudentHistoryService
             ->first();
     }
 
-    /** @param Collection<int, Student> $students */
-    public function attachSummaries(Collection $students, AcademicYear $year, ?string $semester, ?Carbon $start = null, ?Carbon $end = null): void
+    /** @param Collection<int, Student> $students @param list<int>|null $scheduleIds */
+    public function attachSummaries(Collection $students, AcademicYear $year, ?string $semester, ?Carbon $start = null, ?Carbon $end = null, ?array $scheduleIds = null): void
     {
         if ($students->isEmpty()) {
             return;
@@ -143,7 +167,7 @@ class TeacherStudentHistoryService
         [$rangeStart, $rangeEnd] = $start !== null && $end !== null ? [$start, $end] : $this->resolveRange($year, $semester);
         $effective = $this->effectiveDays($rangeStart, $rangeEnd);
         $inScope = array_fill_keys($effective, true);
-        $summaries = $this->summarize($students, $rangeStart, $rangeEnd, $inScope, count($effective));
+        $summaries = $this->summarize($students, $rangeStart, $rangeEnd, $inScope, count($effective), $scheduleIds);
 
         foreach ($students as $student) {
             $student->setAttribute('attendance', $summaries[$student->id] ?? $this->emptySummary(count($effective)));
@@ -153,6 +177,33 @@ class TeacherStudentHistoryService
     /** @param Collection<int, Student> $students @param list<int>|null $scheduleIds @return array<int, array<string, mixed>> */
     private function summarize(Collection $students, Carbon $start, Carbon $end, array $inScope, int $total, ?array $scheduleIds = null): array
     {
+        if ($scheduleIds !== null) {
+            if ($scheduleIds === []) {
+                $out = [];
+                foreach ($students as $student) {
+                    $out[$student->id] = $this->emptySummary(0);
+                }
+
+                return $out;
+            }
+
+            $scheduledDays = ClassSchedule::query()
+                ->whereIn('id', $scheduleIds)
+                ->pluck('day')
+                ->map(fn ($d): string => $d instanceof \BackedEnum ? strtolower($d->value) : strtolower((string) $d))
+                ->unique()
+                ->all();
+
+            if ($scheduledDays !== []) {
+                $inScope = array_filter(
+                    $inScope,
+                    fn (mixed $_, string $date): bool => in_array(strtolower(Carbon::parse($date)->format('l')), $scheduledDays, true),
+                    ARRAY_FILTER_USE_BOTH
+                );
+                $total = count($inScope);
+            }
+        }
+
         $studentIds = $students->pluck('id')->all();
         $userIds = $students->map(fn (Student $s): ?int => $s->user?->id ?? $s->user_id)->filter()->all();
         $userByStudent = $students->mapWithKeys(fn (Student $s): array => [$s->id => $s->user?->id ?? $s->user_id])->all();
