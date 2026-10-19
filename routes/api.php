@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AcademicYear\AcademicYearController;
+use App\Http\Controllers\Api\Attendance\AttendanceRecapController;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Classroom\ClassroomController;
 use App\Http\Controllers\Api\ClassSchedule\ClassScheduleController;
@@ -108,6 +109,12 @@ Route::middleware(['auth:sanctum', 'role:admin,teacher'])->group(function (): vo
     Route::prefix('settings')->name('settings.')->group(function (): void {
         Route::get('schedules', [ScheduleSettingController::class, 'index'])->name('schedules.index');
         Route::get('schedules/{day}', [ScheduleSettingController::class, 'show'])->name('schedules.show');
+    });
+
+    Route::prefix('attendance')->name('attendance.')->group(function (): void {
+        Route::get('/summary', [AttendanceRecapController::class, 'summary'])->name('summary');
+        Route::get('/student-summaries', [AttendanceRecapController::class, 'studentSummaries'])->name('student-summaries');
+        Route::get('/student/{student}', [AttendanceRecapController::class, 'studentDetail'])->name('student.detail');
     });
 });
 
